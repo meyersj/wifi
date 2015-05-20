@@ -3,7 +3,7 @@ import os, sys, time
 import pyshark, requests
 
 import config
-from proto.packets_pb2 import Packet, Payload
+from packets_pb2 import Packet, Payload
 
 requests.packages.urllib3.disable_warnings()
 
