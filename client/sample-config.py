@@ -1,0 +1,5 @@
+interface = "<interface>"
+sensor = "<sensor name>"
+location = "<location of sensor>"
+sensor_mac = "<mac address of network card>"
+endpoint = "<endpoint for packets>"
