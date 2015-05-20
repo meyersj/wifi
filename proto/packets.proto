@@ -1,0 +1,23 @@
+syntax = "proto2";
+package packets;
+
+message Packet {
+    optional double arrival     = 1;
+    optional int32 seq          = 2;
+    optional string subtype     = 3;
+    optional string ssid        = 4;
+    optional string source      = 5;
+    optional string transmitter = 6;
+    optional string destination = 7;
+    optional string receiver    = 8;
+    optional int32  freq        = 9;
+    optional int32  signal      = 10;
+}
+
+message Payload {
+    optional string location    = 1;
+    optional string sensor      = 2;
+    repeated Packet data        = 3;
+}
+
+
