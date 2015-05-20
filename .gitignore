@@ -1,0 +1,7 @@
+*.*~
+*.pyc
+server/env
+client/env
+config.py
+
+
