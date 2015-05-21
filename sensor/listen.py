@@ -73,7 +73,6 @@ class Handler(object):
         p.destination = da
         p.receiver = ra
         p.arrival = float(packet.frame_info.get_field_value("time_epoch"))
-        print sub, p.arrival 
         seq = self.cast(packet.wlan.get_field_value("seq"), int)
         freq = self.cast(packet.radiotap.get_field_value("channel_freq"), int)
         signal = self.cast(packet.radiotap.get_field_value("dbm_antsignal"), int)
@@ -85,7 +84,8 @@ class Handler(object):
 
         self.keys.add(key)
         self.data.append(p)
-
+        
+        print sub, p.arrival 
 
 class Listener(object):
     
