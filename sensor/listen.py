@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, uuid, datetime
 
 import pyshark, requests
 
@@ -9,7 +9,7 @@ requests.packages.urllib3.disable_warnings()
 
 # time intervals
 INTERVAL = 5
-TIMEOUT  = 60
+TIMEOUT  = 5
 
 EXCLUDE = [config.sensor_mac]
 
@@ -72,7 +72,9 @@ class Handler(object):
         p.transmitter = ta
         p.destination = da
         p.receiver = ra
+        p.stamp = str(uuid.uuid1())
         p.arrival = float(packet.frame_info.get_field_value("time_epoch"))
+
         seq = self.cast(packet.wlan.get_field_value("seq"), int)
         freq = self.cast(packet.radiotap.get_field_value("channel_freq"), int)
         signal = self.cast(packet.radiotap.get_field_value("dbm_antsignal"), int)
@@ -85,9 +87,11 @@ class Handler(object):
         self.keys.add(key)
         self.data.append(p)
         
-        print sub, p.arrival 
+        print sub, p.arrival
 
+        
 class Listener(object):
+
     
     def __init__(self, display_filter="", bpf_filter=""):
         self.display_filter = display_filter
@@ -123,7 +127,7 @@ def main():
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
     listener = Listener(display_filter=display_filter)
-    listener.listen()
+    for i in range(0, 5): listener.listen()
 
 
 if __name__ == '__main__':

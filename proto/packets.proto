@@ -2,16 +2,17 @@ syntax = "proto2";
 package packets;
 
 message Packet {
-    optional double arrival     = 1;
-    optional int32 seq          = 2;
-    optional string subtype     = 3;
-    optional string ssid        = 4;
-    optional string source      = 5;
-    optional string transmitter = 6;
-    optional string destination = 7;
-    optional string receiver    = 8;
-    optional int32  freq        = 9;
-    optional int32  signal      = 10;
+    optional string stamp       = 1;
+    optional double arrival     = 2;
+    optional int32 seq          = 3;
+    optional string subtype     = 4;
+    optional string ssid        = 5;
+    optional string source      = 6;
+    optional string transmitter = 7;
+    optional string destination = 8;
+    optional string receiver    = 9;
+    optional int32  freq        = 10;
+    optional int32  signal      = 11;
 }
 
 message Payload {
