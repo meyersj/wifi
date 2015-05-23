@@ -65,7 +65,7 @@ class Select(object):
 
 
     @query_wrapper
-    def visits(self, location="", age=24*60):
+    def visits(self, location="", age=24*60, min_records=0):
         recent = time.time() - age * 60
         resultset = LocationIndex.objects\
             .filter(location=location)\
@@ -73,7 +73,7 @@ class Select(object):
         visits = []
         for record in resultset:
             visit = Visit.objects(mac=record.mac, stamp=record.stamp).first()
-            if visit:
+            if visit and len(visit.pings) >= min_records:
                 data = zip(
                     [float(ping) for ping in visit.pings],
                     visit.signals,

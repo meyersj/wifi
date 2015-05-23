@@ -33,9 +33,14 @@ def recent():
 def visits():
     select = Select()
     try:
-        age = int(request.args.get("age"))
         location = request.args.get("location")
-        data = select.visits(location=location, age=age)
+        age = request.args.get("age")
+        min_records = request.args.get("min_records")
+        args = {}
+        if location: args["location"] = location
+        if age: args["age"] = int(age)
+        if min_records: args["min_records"] = int(min_records)
+        data = select.visits(**args)
         data["success"] = True
     except Exception:
         data["success"] = False
