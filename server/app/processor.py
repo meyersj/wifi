@@ -10,12 +10,10 @@ from cqlmodels import DeviceIndex, VisitIndex
 from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
-def process_wrapper(func):
+def query_wrapper(func):
     """ closure that connects to the cluster, excutes the input function
         and disconnects from the cluster """
     def execute(*args, **kwargs):
-        self = args[0]
-        if not self.success or not self.payload.data: return self.response()
         connection.setup(
             app.config["CASSANDRA_NODES"],
             app.config["CASSANDRA_KEYSPACE"],
@@ -27,9 +25,7 @@ def process_wrapper(func):
         sync_table(LocationRecent) 
         sync_table(DeviceIndex) 
         sync_table(VisitIndex) 
-        func(*args, **kwargs)
-        cluster.shutdown()
-        return self.response()
+        return func(*args, **kwargs)
     return execute
 
 class Processor(object):
@@ -56,8 +52,9 @@ class Processor(object):
         ret_val["type"] = type(self).__name__
         return jsonify(ret_val)
     
-    @process_wrapper
+    @query_wrapper
     def run(self):
+        if not self.success or not self.payload.data: return self.response()
         kwargs = {"location":self.payload.location, "sensor":self.payload.sensor}
         for data in self.payload.data:
             handler = None
@@ -69,5 +66,5 @@ class Processor(object):
                 handler = ProbeRequestHandler(data, **kwargs)
             else: error("unhandled packet type")
             handler.process()
-
+        return self.response()
 

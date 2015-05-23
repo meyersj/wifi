@@ -22,9 +22,9 @@ class LocationRecent(Model):
 class MacRecent(Model):
     __table_name__ = "mac_recent_data"
     location       = columns.Text()
+    mac            = columns.Text(primary_key=True)
     stamp          = columns.TimeUUID(primary_key=True)
     sensor         = columns.Text()
-    mac            = columns.Text(primary_key=True)
     arrival        = columns.Decimal()
     subtype        = columns.Text()
     seq            = columns.Integer()
