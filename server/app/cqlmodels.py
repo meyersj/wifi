@@ -1,6 +1,5 @@
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
-from cassandra.cqlengine.usertype import UserType
 
 
 class Beacon(Model):
@@ -8,10 +7,11 @@ class Beacon(Model):
     mac            = columns.Text(primary_key=True)
     ssid           = columns.Text()
 
-class LocationRecent(Model):
-    __table_name__ = "location_recent_data"
+
+class Recent(Model):
+    __table_name__ = "recent"
     location       = columns.Text(primary_key=True)
-    stamp          = columns.TimeUUID(primary_key=True)
+    stamp          = columns.TimeUUID(primary_key=True, clustering_order="desc")
     sensor         = columns.Text()
     mac            = columns.Text()
     arrival        = columns.Decimal()
@@ -19,34 +19,32 @@ class LocationRecent(Model):
     seq            = columns.Integer()
     signal         = columns.Integer()
 
-class MacRecent(Model):
-    __table_name__ = "mac_recent_data"
-    location       = columns.Text()
-    mac            = columns.Text(primary_key=True)
-    stamp          = columns.TimeUUID(primary_key=True)
-    sensor         = columns.Text()
-    arrival        = columns.Decimal()
-    subtype        = columns.Text()
-    seq            = columns.Integer()
-    signal         = columns.Integer()
 
-class DeviceIndex(Model):
-    __table_name__  = "device_index"
-    mac             = columns.Text(primary_key=True)
-    recent_location = columns.Text()
-    recent_sensor   = columns.Text()
+class LocationIndex(Model):
+    __table_name__  = "location_index"
+    location        = columns.Text(primary_key=True)
+    stamp           = columns.TimeUUID(primary_key=True, clustering_order="desc")
+    mac             = columns.Text()
+    first_arrival   = columns.Decimal()
     recent_arrival  = columns.Decimal()
 
-class VisitIndex(Model):
-    __table_name__  = "visit_index"
+
+class Visit(Model):
+    __table_name__  = "visit"
     mac             = columns.Text(primary_key=True)
-    stamp           = columns.TimeUUID(primary_key=True)
+    stamp           = columns.TimeUUID(primary_key=True, clustering_order="desc")
     location        = columns.Text()
     first_arrival   = columns.Decimal()
     recent_arrival  = columns.Decimal()
-    pings           = columns.List(columns.Decimal)
-    signals         = columns.List(columns.Integer)
-    counts          = columns.List(columns.Integer)
+    pings           = columns.List(columns.Decimal, default=[])
+    signals         = columns.List(columns.Integer, default=[])
+    counts          = columns.List(columns.Integer, default=[])
+
+
+class ProcessStatus(Model):
+    __table_name__  = "process_status"
+    location        = columns.Text(primary_key=True)
+    last_process    = columns.TimeUUID()
 
 
 
