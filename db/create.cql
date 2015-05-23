@@ -45,6 +45,11 @@ CREATE TABLE beacon (
     PRIMARY KEY (mac)
 );
 
+CREATE TABLE manuf (
+    prefix TEXT PRIMARY KEY,
+    manuf TEXT
+);
+
 CREATE TABLE process_status (
     location TEXT PRIMARY KEY,
     last_process TIMEUUID
