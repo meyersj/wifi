@@ -44,7 +44,8 @@ class ProbeHandler(FrameHandler):
             .order_by("-first_arrival")\
             .first()
         if record and record.recent_arrival > recent:
-            debug(record)
+            debug("MATCH UPDATE VISIT INDEX RECENT ARRIVAL")
+            #debug(record)
             VisitIndex.objects(mac=mac, first_arrival=record.first_arrival)\
                 .update(recent_arrival=self.data.arrival)
         else:

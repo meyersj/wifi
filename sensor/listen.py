@@ -9,7 +9,7 @@ requests.packages.urllib3.disable_warnings()
 
 # time intervals
 INTERVAL = 5
-TIMEOUT  = 60
+TIMEOUT  = 10
 
 EXCLUDE = [config.sensor_mac]
 FRAMES = ["0x04", "0x05", "0x08"]
@@ -71,9 +71,10 @@ class Handler(object):
         p.transmitter = ta
         p.destination = da
         p.receiver = ra
-        p.stamp = str(uuid.uuid1())
+        u = uuid.uuid1()
+        p.stamp = str(u)
+        #print datetime.datetime.fromtimestamp((u.time - 0x01b21dd213814000L)*100/1e9)
         p.arrival = float(packet.frame_info.get_field_value("time_epoch"))
-
         seq = self.cast(packet.wlan.get_field_value("seq"), int)
         freq = self.cast(packet.radiotap.get_field_value("channel_freq"), int)
         signal = self.cast(packet.radiotap.get_field_value("dbm_antsignal"), int)
@@ -126,7 +127,7 @@ def main():
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
     listener = Listener(display_filter=display_filter)
-    for i in range(0, 5): listener.listen()
+    for i in range(0, 1): listener.listen()
 
 
 if __name__ == '__main__':
