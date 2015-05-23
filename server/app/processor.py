@@ -4,9 +4,7 @@ from cassandra.cqlengine.management import sync_table, sync_type
 
 from app import app, debug, error
 from packets_pb2 import Payload
-from cqlmodels import Beacon as BeaconTable, MacRecent, LocationRecent
-from cqlmodels import MacRecent, LocationRecent
-from cqlmodels import DeviceIndex, VisitIndex
+from cqlmodels import Beacon, Recent, Visit, LocationIndex, ProcessStatus
 from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
@@ -20,11 +18,11 @@ def query_wrapper(func):
             retry_connect=True
         )
         cluster = connection.get_cluster()
-        sync_table(BeaconTable)
-        sync_table(MacRecent)
-        sync_table(LocationRecent) 
-        sync_table(DeviceIndex) 
-        sync_table(VisitIndex) 
+        sync_table(Beacon)
+        sync_table(Recent)
+        sync_table(Visit) 
+        sync_table(LocationIndex) 
+        sync_table(ProcessStatus) 
         return func(*args, **kwargs)
     return execute
 

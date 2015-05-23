@@ -6,9 +6,7 @@ from cassandra.cqlengine import connection
 from cassandra.cqlengine.query import DoesNotExist
 
 from app import app, debug, error
-from cqlmodels import Beacon as BeaconTable
-from cqlmodels import MacRecent, LocationRecent
-from cqlmodels import DeviceIndex, VisitIndex
+from cqlmodels import Beacon, Recent, Visit, LocationIndex
 
 
 class FrameHandler(object):
@@ -37,37 +35,38 @@ class ProbeHandler(FrameHandler):
         if self.data.HasField("signal"): params["signal"] = self.data.signal
         return params
 
-    def visit_index(self, mac):
+    def update_visit(self, mac):
         recent = self.data.arrival - 60 * 15.0
-        record = VisitIndex.objects\
+        record = Visit.objects\
             .filter(mac=mac)\
             .first()
         if record and record.recent_arrival > recent:
-            VisitIndex.objects(mac=mac, stamp=self.data.stamp)\
+            Visit.objects(mac=mac, stamp=record.stamp)\
+                .update(recent_arrival=self.data.arrival)
+            LocationIndex.objects(location=self.location, stamp=record.stamp)\
                 .update(recent_arrival=self.data.arrival)
         else:
-            device = VisitIndex(
+            location = LocationIndex(
+                location=self.location,
+                mac=mac,
+                stamp=self.data.stamp,
+                first_arrival=self.data.arrival,
+                recent_arrival=self.data.arrival
+            )
+            device = Visit(
                 mac=mac,
                 stamp=self.data.stamp,
                 location=self.location,
                 first_arrival=self.data.arrival,
                 recent_arrival=self.data.arrival
             )
+            location.save()
             device.save()
 
-    def device_index(self, mac):
-        DeviceIndex.objects(mac=mac).update(
-            recent_location=self.location,
-            recent_sensor=self.sensor,
-            recent_arrival=self.data.arrival)
-
     def insert(self, params):
-        recent = MacRecent(**params)
-        location = LocationRecent(**params)
+        recent = Recent(**params)
         recent.save()
-        location.save()
-        self.device_index(params["mac"])
-        self.visit_index(params["mac"])
+        self.update_visit(params["mac"])
 
 
 class ProbeRequestHandler(ProbeHandler):
@@ -88,9 +87,9 @@ class BeaconHandler(FrameHandler):
 
     def process(self):
         try:
-            BeaconTable.get(mac=self.data.source)
+            Beacon.get(mac=self.data.source)
         except DoesNotExist:
-            beacon = BeaconTable(mac=self.data.source, ssid=self.data.ssid)
+            beacon = Beacon(mac=self.data.source, ssid=self.data.ssid)
             beacon.save()
 
 

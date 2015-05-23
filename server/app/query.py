@@ -4,9 +4,8 @@ import time
 from cassandra.util import max_uuid_from_time
 
 from app import app, debug, error
-from cqlmodels import Beacon as BeaconTable
-from cqlmodels import MacRecent, LocationRecent
-from cqlmodels import DeviceIndex, VisitIndex
+from cqlmodels import Recent
+from cqlmodels import LocationIndex, Visit
 from processor import query_wrapper
 
 
@@ -52,32 +51,41 @@ class Select(object):
             "fields":["mac", "first_arrival", "last_arrival", "avg_signal", "count"]
         }
 
+
     @query_wrapper
-    def recent_location(self, location="", age=15):
+    def recent(self, location="", age=15):
         # query cassandra table using location
         # as partition key and using age in minutes
         # as filter
         recent = time.time() - age * 60
-        resultset = LocationRecent.objects\
+        resultset = Recent.objects\
             .filter(location=location)\
-            .filter(LocationRecent.stamp > max_uuid_from_time(recent))
+            .filter(Recent.stamp > max_uuid_from_time(recent))
         return self.aggregate_recent(resultset)
 
 
     @query_wrapper
-    def recent_mac(self, mac="", age=HOUR_24):
-        # query cassandra table using mac address
-        # as partition key and using age in minutes
-        # as filter
+    def visits(self, location="", age=24*60):
         recent = time.time() - age * 60
-        resultset = MacRecent.objects\
-            .filter(MacRecent.mac == mac)\
-            .filter(MacRecent.stamp > max_uuid_from_time(recent))
-        return self.aggregate_recent(resultset)
-
-
-
-
+        resultset = LocationIndex.objects\
+            .filter(location=location)\
+            .filter(LocationIndex.stamp > max_uuid_from_time(recent))
+        visits = []
+        for record in resultset:
+            visit = Visit.objects(mac=record.mac, stamp=record.stamp).first()
+            if visit:
+                data = zip(
+                    [float(ping) for ping in visit.pings],
+                    visit.signals,
+                    visit.counts
+                )
+                visits.append({
+                    "mac":record.mac,
+                    "first_arrival":float(visit.first_arrival),
+                    "recent_arrival":float(visit.recent_arrival),
+                    "data":data
+                })
+        return {"visits":visits}
 
 
 
