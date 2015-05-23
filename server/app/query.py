@@ -81,6 +81,7 @@ class Select(object):
                 )
                 visits.append({
                     "mac":record.mac,
+                    "manuf":visit.manuf,
                     "first_arrival":float(visit.first_arrival),
                     "recent_arrival":float(visit.recent_arrival),
                     "data":data
