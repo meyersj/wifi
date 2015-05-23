@@ -41,22 +41,19 @@ class ProbeHandler(FrameHandler):
         recent = self.data.arrival - 60 * 15.0
         record = VisitIndex.objects\
             .filter(mac=mac)\
-            .order_by("-first_arrival")\
             .first()
         if record and record.recent_arrival > recent:
-            debug("MATCH UPDATE VISIT INDEX RECENT ARRIVAL")
-            #debug(record)
-            VisitIndex.objects(mac=mac, first_arrival=record.first_arrival)\
+            VisitIndex.objects(mac=mac, stamp=self.data.stamp)\
                 .update(recent_arrival=self.data.arrival)
         else:
             device = VisitIndex(
                 mac=mac,
+                stamp=self.data.stamp,
                 location=self.location,
                 first_arrival=self.data.arrival,
                 recent_arrival=self.data.arrival
             )
             device.save()
-            debug("RECORD NULL")
 
     def device_index(self, mac):
         DeviceIndex.objects(mac=mac).update(

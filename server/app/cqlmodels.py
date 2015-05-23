@@ -40,9 +40,13 @@ class DeviceIndex(Model):
 class VisitIndex(Model):
     __table_name__  = "visit_index"
     mac             = columns.Text(primary_key=True)
+    stamp           = columns.TimeUUID(primary_key=True)
     location        = columns.Text()
-    first_arrival   = columns.Decimal(primary_key=True)
+    first_arrival   = columns.Decimal()
     recent_arrival  = columns.Decimal()
+    pings           = columns.List(columns.Decimal)
+    signals         = columns.List(columns.Integer)
+    counts          = columns.List(columns.Integer)
 
 
 

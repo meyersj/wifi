@@ -17,6 +17,14 @@ CREATE TABLE location_recent_data (
     PRIMARY KEY (location, stamp)
 ) WITH CLUSTERING ORDER BY (stamp DESC);
 
+CREATE TABLE location_recent_data (
+
+
+
+) WITH CLUSTERING ORDER BY (stamp DESC);
+
+
+
 CREATE TABLE mac_recent_data (
     location TEXT,
     stamp TIMEUUID,
@@ -28,6 +36,9 @@ CREATE TABLE mac_recent_data (
     signal INT,
     PRIMARY KEY (mac, stamp)
 ) WITH CLUSTERING ORDER BY (stamp DESC);
+
+
+
 
 CREATE TABLE beacon (
     mac TEXT,
@@ -44,11 +55,15 @@ CREATE TABLE device_index (
     
 CREATE TABLE visit_index (
     mac TEXT,
+    stamp TIMEUUID,
     location TEXT,
     first_arrival DECIMAL,
     recent_arrival DECIMAL,
-    PRIMARY KEY (mac, first_arrival)
-) WITH CLUSTERING ORDER BY (first_arrival DESC);
+    pings LIST <DECIMAL>,
+    signals LIST <INT>,
+    counts <INT>,
+    PRIMARY KEY (mac, stamp)
+) WITH CLUSTERING ORDER BY (stamp DESC);
 
 
 
