@@ -1,4 +1,6 @@
-import os, sys, time, uuid, datetime
+import os, sys, time
+from uuid import uuid1
+from datetime import datetime
 
 import pyshark, requests
 
@@ -8,8 +10,8 @@ from packets_pb2 import Packet, Payload
 requests.packages.urllib3.disable_warnings()
 
 # time intervals
-INTERVAL = 5
-TIMEOUT  = 10
+INTERVAL = config.interval
+TIMEOUT  = config.timeout
 
 EXCLUDE = [config.sensor_mac]
 FRAMES = ["0x04", "0x05", "0x08"]
@@ -67,13 +69,11 @@ class Handler(object):
         
         p = Packet()  
         p.subtype = sub
-        p.source = sa
-        p.transmitter = ta
-        p.destination = da
-        p.receiver = ra
-        u = uuid.uuid1()
-        p.stamp = str(u)
-        #print datetime.datetime.fromtimestamp((u.time - 0x01b21dd213814000L)*100/1e9)
+        if sa: p.source = sa
+        if ta: p.transmitter = ta
+        if da: p.destination = da
+        if ra: p.receiver = ra
+        p.stamp = str(uuid1())
         p.arrival = float(packet.frame_info.get_field_value("time_epoch"))
         seq = self.cast(packet.wlan.get_field_value("seq"), int)
         freq = self.cast(packet.radiotap.get_field_value("channel_freq"), int)
@@ -85,8 +85,9 @@ class Handler(object):
         if sub == "0x08": p.ssid = packet.wlan_mgt.get_field_value("ssid")
 
         self.keys.add(key)
-        self.data.append(p)
+        self.tmp.append(p)
         
+        #print datetime.fromtimestamp((uuid1().time - 0x01b21dd213814000L)*100/1e9)
         print sub, p.arrival
 
         
@@ -127,7 +128,7 @@ def main():
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
     listener = Listener(display_filter=display_filter)
-    for i in range(0, 1): listener.listen()
+    listener.listen()
 
 
 if __name__ == '__main__':
