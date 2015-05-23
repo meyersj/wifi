@@ -2,8 +2,9 @@ scala
 *.*~
 *.*.swp
 *.pyc
-server/env
-client/env
+server/env/*
+sensor/lib/Kimi*eb4f2b9/*
+sensor/env/*
 config.py
 
 
