@@ -4,7 +4,7 @@ from cassandra.cqlengine.management import sync_table, sync_type
 
 from app import app, debug, error
 from packets_pb2 import Payload
-from cqlmodels import Beacon, Recent, Visit, LocationIndex, ProcessStatus
+from cqlmodels import Manuf, Beacon, Recent, Visit, LocationIndex, ProcessStatus
 from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
@@ -23,6 +23,7 @@ def query_wrapper(func):
         sync_table(Visit) 
         sync_table(LocationIndex) 
         sync_table(ProcessStatus) 
+        sync_table(Manuf) 
         return func(*args, **kwargs)
     return execute
 

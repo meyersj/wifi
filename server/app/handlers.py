@@ -6,7 +6,7 @@ from cassandra.cqlengine import connection
 from cassandra.cqlengine.query import DoesNotExist
 
 from app import app, debug, error
-from cqlmodels import Beacon, Recent, Visit, LocationIndex
+from cqlmodels import Manuf, Beacon, Recent, Visit, LocationIndex
 
 
 class FrameHandler(object):
@@ -46,6 +46,9 @@ class ProbeHandler(FrameHandler):
             LocationIndex.objects(location=self.location, stamp=record.stamp)\
                 .update(recent_arrival=self.data.arrival)
         else:
+            manuf = Manuf.objects.filter(prefix=mac[0:8].upper()).first()
+            if manuf: manuf = manuf.manuf
+            else: manuf = None
             location = LocationIndex(
                 location=self.location,
                 mac=mac,
@@ -55,6 +58,7 @@ class ProbeHandler(FrameHandler):
             )
             device = Visit(
                 mac=mac,
+                manuf=manuf,
                 stamp=self.data.stamp,
                 location=self.location,
                 first_arrival=self.data.arrival,
