@@ -9,11 +9,9 @@ requests.packages.urllib3.disable_warnings()
 
 # time intervals
 INTERVAL = 5
-TIMEOUT  = 5
+TIMEOUT  = 60
 
 EXCLUDE = [config.sensor_mac]
-
-FRAMES = ["0x04", "0x08", "0x20", "0x28"]
 FRAMES = ["0x04", "0x05", "0x08"]
 
 class Handler(object):
@@ -40,6 +38,7 @@ class Handler(object):
     def flush(self):
         now = float(time.time())
         if now >= self.dump:
+            print "flushing"
             self.dump = now + self.interval
             self.keys = set()
             self.data += self.tmp
