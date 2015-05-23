@@ -26,6 +26,7 @@ class ProbeHandler(FrameHandler):
     def construct(self, mac):
         params = {
             "location":self.location,
+            "stamp":self.data.stamp,
             "sensor":self.sensor,
             "mac":mac,
             "arrival":self.data.arrival,

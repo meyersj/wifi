@@ -7,25 +7,27 @@ USE networks;
 
 CREATE TABLE location_recent_data (
     location TEXT,
+    stamp TIMEUUID,
     sensor TEXT,
     mac TEXT,
     arrival DECIMAL,
     subtype TEXT,
     seq INT,
     signal INT,
-    PRIMARY KEY (location, arrival)
-) WITH CLUSTERING ORDER BY (arrival DESC);
+    PRIMARY KEY (location, stamp)
+) WITH CLUSTERING ORDER BY (stamp DESC);
 
 CREATE TABLE mac_recent_data (
     location TEXT,
+    stamp TIMEUUID,
     sensor TEXT,
     mac TEXT,
     arrival DECIMAL,
     subtype TEXT,
     seq INT,
     signal INT,
-    PRIMARY KEY (mac, arrival)
-) WITH CLUSTERING ORDER BY (arrival DESC);
+    PRIMARY KEY (mac, stamp)
+) WITH CLUSTERING ORDER BY (stamp DESC);
 
 CREATE TABLE beacon (
     mac TEXT,

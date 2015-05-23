@@ -11,6 +11,8 @@ from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
 def process_wrapper(func):
+    """ closure that connects to the cluster, excutes the input function
+        and disconnects from the cluster """
     def execute(*args, **kwargs):
         self = args[0]
         if not self.success or not self.payload.data: return self.response()
@@ -27,7 +29,6 @@ def process_wrapper(func):
         sync_table(VisitIndex) 
         func(*args, **kwargs)
         cluster.shutdown()
-        
         return self.response()
     return execute
 
@@ -59,14 +60,14 @@ class Processor(object):
     def run(self):
         kwargs = {"location":self.payload.location, "sensor":self.payload.sensor}
         for data in self.payload.data:
-            packet = None
+            handler = None
             if data.subtype == "0x08":
-                packet = BeaconHandler(data, **kwargs)
+                handler = BeaconHandler(data, **kwargs)
             elif data.subtype == "0x05":
-                packet = ProbeResponseHandler(data, **kwargs)
+                handler = ProbeResponseHandler(data, **kwargs)
             elif data.subtype == "0x04":
-                packet = ProbeRequestHandler(data, **kwargs)
+                handler = ProbeRequestHandler(data, **kwargs)
             else: error("unhandled packet type")
-            packet.process()
+            handler.process()
 
 

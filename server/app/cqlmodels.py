@@ -11,9 +11,10 @@ class Beacon(Model):
 class LocationRecent(Model):
     __table_name__ = "location_recent_data"
     location       = columns.Text(primary_key=True)
+    stamp          = columns.TimeUUID(primary_key=True)
     sensor         = columns.Text()
     mac            = columns.Text()
-    arrival        = columns.Decimal(primary_key=True)
+    arrival        = columns.Decimal()
     subtype        = columns.Text()
     seq            = columns.Integer()
     signal         = columns.Integer()
@@ -21,9 +22,10 @@ class LocationRecent(Model):
 class MacRecent(Model):
     __table_name__ = "mac_recent_data"
     location       = columns.Text()
+    stamp          = columns.TimeUUID(primary_key=True)
     sensor         = columns.Text()
     mac            = columns.Text(primary_key=True)
-    arrival        = columns.Decimal(primary_key=True)
+    arrival        = columns.Decimal()
     subtype        = columns.Text()
     seq            = columns.Integer()
     signal         = columns.Integer()
