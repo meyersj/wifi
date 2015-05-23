@@ -29,6 +29,7 @@ CREATE TABLE location_index (
 
 CREATE TABLE visit (
     mac TEXT,
+    manuf TEXT,
     stamp TIMEUUID,
     location TEXT,
     first_arrival DECIMAL,
