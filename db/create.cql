@@ -5,7 +5,7 @@ CREATE KEYSPACE networks WITH REPLICATION = {
 
 USE networks;
 
-CREATE TABLE location_recent_data (
+CREATE TABLE recent (
     location TEXT,
     stamp TIMEUUID,
     sensor TEXT,
@@ -15,45 +15,19 @@ CREATE TABLE location_recent_data (
     seq INT,
     signal INT,
     PRIMARY KEY (location, stamp)
-) WITH CLUSTERING ORDER BY (stamp DESC);
+) WITH CLUSTERING ORDER BY (stamp DESC) AND
+default_time_to_live = 86400;
 
-CREATE TABLE location_recent_data (
-
-
-
-) WITH CLUSTERING ORDER BY (stamp DESC);
-
-
-
-CREATE TABLE mac_recent_data (
+CREATE TABLE location_index (
     location TEXT,
-    stamp TIMEUUID,
-    sensor TEXT,
     mac TEXT,
-    arrival DECIMAL,
-    subtype TEXT,
-    seq INT,
-    signal INT,
-    PRIMARY KEY (mac, stamp)
+    stamp TIMEUUID,
+    first_arrival DECIMAL,
+    recent_arrival DECIMAL,
+    PRIMARY KEY (location, stamp)
 ) WITH CLUSTERING ORDER BY (stamp DESC);
 
-
-
-
-CREATE TABLE beacon (
-    mac TEXT,
-    ssid TEXT,
-    PRIMARY KEY (mac)
-);
-
-CREATE TABLE device_index (
-    mac TEXT PRIMARY KEY,
-    recent_location TEXT,
-    recent_sensor TEXT,
-    recent_arrival DECIMAL
-);
-    
-CREATE TABLE visit_index (
+CREATE TABLE visit (
     mac TEXT,
     stamp TIMEUUID,
     location TEXT,
@@ -61,9 +35,19 @@ CREATE TABLE visit_index (
     recent_arrival DECIMAL,
     pings LIST <DECIMAL>,
     signals LIST <INT>,
-    counts <INT>,
+    counts LIST <INT>,
     PRIMARY KEY (mac, stamp)
 ) WITH CLUSTERING ORDER BY (stamp DESC);
 
+CREATE TABLE beacon (
+    mac TEXT,
+    ssid TEXT,
+    PRIMARY KEY (mac)
+);
+
+CREATE TABLE process_status (
+    location TEXT PRIMARY KEY,
+    last_process TIMEUUID
+);
 
 
