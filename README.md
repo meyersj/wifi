@@ -10,9 +10,10 @@ and insert it into a Cassandra database.
 You should be able to run the sensor code on any computer with a network card
 that can be switched into monitor mode.
 
-The current setup I am using is two DigitalOcean virtual machines both with 512MB RAM.
-One machine is the runs as the web server for the Pi to communicate with which
-sends the data to a second machine running Cassandra.
+The current setup I am using consists of two DigitalOcean virtual machines
+both with 512MB RAM. One machine runs as the web server for the sensors
+to communicate with which then sends the data to a second machine running a
+Cassandra instance.
 
 ### Project Structure
 
