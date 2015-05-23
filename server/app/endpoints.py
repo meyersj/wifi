@@ -19,17 +19,25 @@ def data_stream():
 @app.route('/recent', methods=['GET'])
 def recent():
     select = Select()
-    print request.args
-    mode = request.args["mode"]
-    age = int(request.args.get("age"))
-    data = {"success":False}
-    if mode == "location":
+    try:
+        age = int(request.args.get("age"))
         location = request.args.get("location")
         data = select.recent_location(location=location, age=age)
         data["success"] = True
-    elif mode == "mac":
-        mac = request.args.get("mac")
-        data = select.recent_mac(mac=mac, age=age)
+    except Exception:
+        data["success"] = False
+    return jsonify(data)
+
+
+@app.route('/visits', methods=['GET'])
+def visits():
+    select = Select()
+    try:
+        age = int(request.args.get("age"))
+        location = request.args.get("location")
+        data = select.visits(location=location, age=age)
         data["success"] = True
+    except Exception:
+        data["success"] = False
     return jsonify(data)
 
