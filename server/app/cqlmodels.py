@@ -8,6 +8,12 @@ class Beacon(Model):
     ssid           = columns.Text()
 
 
+class Manuf(Model):
+    __table_name__ = "manuf"
+    prefix         = columns.Text(primary_key=True)
+    manuf          = columns.Text()
+
+
 class Recent(Model):
     __table_name__ = "recent"
     location       = columns.Text(primary_key=True)
@@ -32,6 +38,7 @@ class LocationIndex(Model):
 class Visit(Model):
     __table_name__  = "visit"
     mac             = columns.Text(primary_key=True)
+    manuf           = columns.Text()
     stamp           = columns.TimeUUID(primary_key=True, clustering_order="desc")
     location        = columns.Text()
     first_arrival   = columns.Decimal()
