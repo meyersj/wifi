@@ -1,0 +1,5 @@
+# you need to run the table defintion cql script on your cluster
+# ftp manuf.csv onto you cluster
+# connect using cql
+
+# execute: copy manuf (prefix, manuf) from '/<path to file>/manuf.csv';
