@@ -19,11 +19,12 @@ Cassandra.
 
 #### db
  - **create.cql** contains Cassandra database creation script
+ - **manuf.csv** manufacture lookup table based on mac prefix which must be loaded into the **manuf** table
 
 #### proto
 Contains protocol buffer definitions used for serialization of data
 sent between the Pi and web server.
- - **build.sh** Execute this to rebuild packets_pb2.py after making changes to packets.proto
+ - **build.sh** Execute this to rebuild **packets_pb2.py** after making changes to **packets.proto**
 
 #### sensor
 This folder contains all the client code that is running on the sensor.
@@ -43,13 +44,13 @@ as specifed in config.py. It is assumed that the server code is running at that 
 
 ```shell
 sudo airmon-ng start wlan0              # virtualize a network card running in monitor mode
-wifi/sensor/env/bin/python listen.py    # run listening script
+wifi/sensor/env/bin/python listen.py    # run listening script (listens for about a minute then sends data)
 ```
 
 #### server
 This folder contains a Python web app built using Flask. The app consists of a single
 endpoint used for the sensors to send pings to. Each ping is then classified
-base on the packet subtype.
+based on the packet subtype.
 
 ###### subtypes
  - 0x04 Probe Request - devices send probe requests to locate access points
