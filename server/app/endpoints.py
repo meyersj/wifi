@@ -19,17 +19,14 @@ def data_stream():
 @app.route('/visits', methods=['GET'])
 def visits():
     select = Select()
-    try:
-        location = request.args.get("location")
-        age = request.args.get("age")
-        min_records = request.args.get("min_records")
-        args = {}
-        if location: args["location"] = location
-        if age: args["age"] = int(age)
-        if min_records: args["min_records"] = int(min_records)
-        data = select.visits(**args)
-        data["success"] = True
-    except Exception:
-        data["success"] = False
+    location = request.args.get("location")
+    age = request.args.get("age")
+    min_records = request.args.get("min_records")
+    args = {}
+    if location: args["location"] = location
+    if age: args["age"] = int(age)
+    if min_records: args["min_records"] = int(min_records)
+    data = select.visits(**args)
+    data["success"] = True
     return jsonify(data)
 

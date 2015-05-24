@@ -13,7 +13,8 @@ HOUR_24 = 60 * 24
 
 
 class Select(object):
-   
+
+    @query_wrapper
     def visits(self, location="", age=HOUR_24, min_records=0):
         recent = time.time() - age * 60
         resultset = LocationIndex.objects\
@@ -23,10 +24,14 @@ class Select(object):
         for record in resultset:
             visit = Visit.objects(mac=record.mac, stamp=record.first_stamp).first()
             if visit and len(visit.pings) >= min_records:
+                pings = filter(
+                    lambda x: x > recent,
+                    [float(ping) for ping in visit.pings]
+                )
                 data = zip(
-                    [float(ping) for ping in visit.pings],
-                    visit.signals,
-                    visit.counts
+                    pings,
+                    visit.signals[0:len(pings)],
+                    visit.counts[0:len(pings)]
                 )
                 mac_hash = hashlib.md5(record.mac).hexdigest()[0:6]
                 if visit.manuf:
