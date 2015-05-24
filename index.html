@@ -35,15 +35,17 @@
       $.getJSON(base_url + "/visits", args, function(data) {
         var end = (new Date).getTime() / 1000;
         var start = end - (60 *60);
+        var left = 0;
         var time_scale = d3.scale.linear()
           .domain([start, end])
-          .range([0, w]);
+          .range([left, w]);
         var incr = h / (data.visits.length + 1);
         var level = incr;
-        console.log(0 + " " + h);
+        
         var devices = [];
         $(data.visits).each(function(index, item) {
-            var low = time_scale(item.first_arrival);
+            if(item.first_arrival < start) var low = left;
+            else var low = time_scale(item.first_arrival);
             var high = time_scale(item.recent_arrival);
             if (low < 0) low = 0;
             var line = [
@@ -67,7 +69,6 @@
           .data(devices).enter()
           .append("path")
           .attr("d", function(d) { 
-            console.log(line(d));
             return line(d);
           })
           .attr("stroke", "black")
