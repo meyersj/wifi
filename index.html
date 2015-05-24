@@ -8,11 +8,82 @@
     </script>
   </head>
   <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 main">
+            <div id="visual"></div>
+        </div>
+      </div>
+    </div>
+  <script>
+  
+    var base_url = "http://wifi.meyersj.com";
+    var h = null;
+    var w = null;
+    var svg = null;
 
 
+    $(document).ready(function() {
+      w = $("#visual").outerWidth();
+      h = 600;
+      svg = create_canvas("#visual", h, w);
+     
+      var args = {};
+      args["location"] = "apartment";
+      args["age"] = 60;
+      args["min_records"] = 2;
+      $.getJSON(base_url + "/visits", args, function(data) {
+        var end = (new Date).getTime() / 1000;
+        var start = end - (60 *60);
+        var time_scale = d3.scale.linear()
+          .domain([start, end])
+          .range([0, w]);
+        var incr = h / (data.visits.length + 1);
+        var level = incr;
+        console.log(0 + " " + h);
+        var devices = [];
+        $(data.visits).each(function(index, item) {
+            var low = time_scale(item.first_arrival);
+            var high = time_scale(item.recent_arrival);
+            if (low < 0) low = 0;
+            var line = [
+                {x:low, y:level},
+                {x:high, y:level}
+            ];
+            devices.push(line);
+            level += incr;
+            console.log(line);
+        });
+        
+        var line = d3.svg.line()
+          .x(function(d, i) {
+            return d.x;
+          })
+          .y(function(d, i) {
+            return d.y;
+          });
+
+        var lines = svg.selectAll("path")
+          .data(devices).enter()
+          .append("path")
+          .attr("d", function(d) { 
+            console.log(line(d));
+            return line(d);
+          })
+          .attr("stroke", "black")
+          .attr("stroke-width", 5);
+      });
+    });
+ 
+    function create_canvas(div, height, width) {
+      return d3.select(div)
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+    }
 
 
-
+  </script>
 
 
 
