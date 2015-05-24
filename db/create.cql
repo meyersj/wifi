@@ -20,17 +20,17 @@ default_time_to_live = 86400;
 
 CREATE TABLE location_index (
     location TEXT,
+    recent_stamp TIMEUUID,
+    first_stamp TIMEUUID,
     mac TEXT,
-    stamp TIMEUUID,
-    first_arrival DECIMAL,
-    recent_arrival DECIMAL,
-    PRIMARY KEY (location, stamp)
-) WITH CLUSTERING ORDER BY (stamp DESC);
+    PRIMARY KEY (location, recent_stamp)
+) WITH CLUSTERING ORDER BY (recent_stamp DESC);
 
 CREATE TABLE visit (
     mac TEXT,
     manuf TEXT,
     stamp TIMEUUID,
+    recent_stamp TIMEUUID,
     location TEXT,
     first_arrival DECIMAL,
     recent_arrival DECIMAL,
