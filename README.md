@@ -12,31 +12,31 @@ that can be switched into monitor mode.
 
 The current setup I am using consists of two DigitalOcean virtual machines
 both with 512MB RAM. One machine runs as the web server for the sensors
-to communicate with which then sends the data to a second machine running a
-Cassandra instance.
+to communicate with which then sends the data to a second machine running
+Cassandra.
 
 ### Project Structure
 
 #### db
- - create.cql : contains Cassandra database creation script
+ - **create.cql** contains Cassandra database creation script
 
 #### proto
 Contains protocol buffer definitions used for serialization of data
 sent between the Pi and web server.
- - build.sh : Execute this to rebuild packets_pb2.py after making changes to packets.proto
+ - **build.sh** Execute this to rebuild packets_pb2.py after making changes to packets.proto
 
 #### sensor
 This folder contains all the client code that is running on the sensor.
 There is a README in this folder than goes over some commands that are
 required to install the dependencies and setup permissions.
 
-- setup.sh : Run this script to set up the environment. This sets up a python
+- **setup.sh** Run this script to set up the environment. This sets up a python
 virtual environment so that must already be available on your system. It will
 install the necessary python packages for you. It will also make copy
 sample-config.py into config.py. This file must be filled out correctly
 for your environment before running.
 
-- listen.py : Once all the dependencies have been met you can run this script. It will
+- **listen.py** Once all the dependencies have been met you can run this script. It will
 listen for wifi track for a given amount of time as defined as a constant in the top of this file.
 It will serialize all the packets using protocol buffers and then send it the the endpoint
 as specifed in config.py. It is assumed that the server code is running at that location.
