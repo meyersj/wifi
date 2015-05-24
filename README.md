@@ -42,8 +42,8 @@ It will serialize all the packets using protocol buffers and then send it the th
 as specifed in config.py. It is assumed that the server code is running at that location.
 
 ```shell
-sudo airmon-ng start wlan0    # virtualize a network card running in monitor mode
-./env/bin/python listen.py    # run listening script
+sudo airmon-ng start wlan0              # virtualize a network card running in monitor mode
+wifi/sensor/env/bin/python listen.py    # run listening script
 ```
 
 #### server
