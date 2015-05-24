@@ -69,10 +69,10 @@ class Select(object):
         recent = time.time() - age * 60
         resultset = LocationIndex.objects\
             .filter(location=location)\
-            .filter(LocationIndex.stamp > max_uuid_from_time(recent))
+            .filter(LocationIndex.recent_stamp > max_uuid_from_time(recent))
         visits = []
         for record in resultset:
-            visit = Visit.objects(mac=record.mac, stamp=record.stamp).first()
+            visit = Visit.objects(mac=record.mac, stamp=record.first_stamp).first()
             if visit and len(visit.pings) >= min_records:
                 data = zip(
                     [float(ping) for ping in visit.pings],
@@ -81,6 +81,7 @@ class Select(object):
                 )
                 visits.append({
                     "mac":record.mac,
+                    "manuf":visit.manuf,
                     "first_arrival":float(visit.first_arrival),
                     "recent_arrival":float(visit.recent_arrival),
                     "data":data
