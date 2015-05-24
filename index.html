@@ -11,7 +11,24 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 main">
-            <div id="visual"></div>
+            <form class="form-inline" style="padding-top:5px;">
+              <div class="form-group">
+                <label for="input-age">Age(min)</label>
+                <input type="number" min="20" class="form-control"
+                  id="input-age" placeholder="60">
+              </div>
+              <div class="form-group">
+                <label for="input-activity">Activity</label>
+                <input type="number" min="0" class="form-control"
+                  id="input-activity" placeholder="2">
+              </div>
+              <button id="btn-update" type="submit"
+                class="btn btn-default">Update</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 main">
+          <div id="visual"></div>
         </div>
       </div>
     </div>
@@ -22,39 +39,41 @@
     var w = null;
     var svg = null;
 
-
-    $(document).ready(function() {
-      w = $("#visual").outerWidth();
-      h = 600;
-      svg = create_canvas("#visual", h, w);
-     
+    function draw(age, min_record) {
+      svg.selectAll("*").remove();
       var args = {};
       args["location"] = "apartment";
-      args["age"] = 60;
-      args["min_records"] = 2;
+      args["age"] = age;
+      args["min_records"] = min_record;
+      console.log(args);
       $.getJSON(base_url + "/visits", args, function(data) {
         var end = (new Date).getTime() / 1000;
         var start = end - (60 *60);
-        var left = 0;
+        var left = 60;
         var time_scale = d3.scale.linear()
           .domain([start, end])
-          .range([left, w]);
+          .range([left, w - left]);
         var incr = h / (data.visits.length + 1);
         var level = incr;
-        
         var devices = [];
+        var pings = []
         $(data.visits).each(function(index, item) {
             if(item.first_arrival < start) var low = left;
             else var low = time_scale(item.first_arrival);
             var high = time_scale(item.recent_arrival);
-            if (low < 0) low = 0;
+            pings.push({x:low, y:level});
+            pings.push({x:high, y:level});
+            $(item.data).each(function(index2, item2) {
+              var ping = time_scale(item2[0]);
+              pings.push({x:ping, y:level});
+            });
             var line = [
-                {x:low, y:level},
-                {x:high, y:level}
+                {x:low, y:level, id:item.device},
+                {x:high, y:level, id:item.device}
             ];
             devices.push(line);
             level += incr;
-            console.log(line);
+
         });
         
         var line = d3.svg.line()
@@ -72,8 +91,58 @@
             return line(d);
           })
           .attr("stroke", "black")
-          .attr("stroke-width", 5);
+          .attr("stroke-width", 4);
+        
+        var ping_circles = svg.selectAll("circle[d=ping]")
+          .data(pings).enter()
+          .append("circle")
+          .attr("d", "ping")
+          .attr("cx", function(d) {
+             return d.x;
+          })
+          .attr("cy", function(d) {
+             return d.y;
+          })
+          .attr("r", 4)
+          .style("fill", "black");
+      
+        if(data.visits.length < 50) { 
+          var circles = svg.selectAll("circle[d=end]")
+            .data(devices).enter()
+            .append("circle")
+            .attr("d", "end")
+            .attr("cx", function(d) {
+                 return d[1].x - 11;
+            })
+            .attr("cy", function(d) {
+                return d[0].y;
+            })
+            .attr("r", 7)
+            .style("fill", "green");
+
+          var label = svg.selectAll("text")
+            .data(devices).enter()
+            .append("text")
+            .text(function(d) {
+              return d[0].id;
+            })
+            .attr("x", function(d) {
+              return d[1].x + 6;
+            })
+            .attr("y", function(d) {
+              return d[0].y + 4;
+            })
+            .attr("font-size", "10px");
+        }
       });
+    }
+
+
+    $(document).ready(function() {
+      w = $("#visual").outerWidth();
+      h = 600;
+      svg = create_canvas("#visual", h, w);
+      draw(60, 2);
     });
  
     function create_canvas(div, height, width) {
@@ -82,6 +151,14 @@
         .attr("width", width)
         .attr("height", height);
     }
+
+    $("#btn-update").click( function(event) {
+      var age = $("#input-age").val() || 60;
+      var activity = $("#input-activity").val() || 2;
+      event.preventDefault();
+      draw(age, activity);
+    });    
+
 
 
   </script>
