@@ -29,17 +29,16 @@ class Recent(Model):
 class LocationIndex(Model):
     __table_name__  = "location_index"
     location        = columns.Text(primary_key=True)
-    stamp           = columns.TimeUUID(primary_key=True, clustering_order="desc")
+    recent_stamp    = columns.TimeUUID(primary_key=True, clustering_order="desc")
+    first_stamp     = columns.TimeUUID()
     mac             = columns.Text()
-    first_arrival   = columns.Decimal()
-    recent_arrival  = columns.Decimal()
-
 
 class Visit(Model):
     __table_name__  = "visit"
     mac             = columns.Text(primary_key=True)
     manuf           = columns.Text()
     stamp           = columns.TimeUUID(primary_key=True, clustering_order="desc")
+    recent_stamp    = columns.TimeUUID()
     location        = columns.Text()
     first_arrival   = columns.Decimal()
     recent_arrival  = columns.Decimal()
