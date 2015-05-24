@@ -41,7 +41,10 @@ listen for wifi track for a given amount of time as defined as a constant in the
 It will serialize all the packets using protocol buffers and then send it the the endpoint
 as specifed in config.py. It is assumed that the server code is running at that location.
 
-  ./env/bin/python listen.py
+```shell
+sudo airmon-ng start wlan0    # virtualize a network card running in monitor mode
+./env/bin/python listen.py    # run listening script
+```
 
 #### server
 This folder contains a Python web app built using Flask. The app consists of a single
@@ -54,14 +57,11 @@ base on the packet subtype.
  - 0x08 Broadcast - broadcast sent by access point to let devices know it exists
 
 Depending on the packet type different actions are taken. There is a beacon table that
-maintains a list of all access points identified in each location. The data from devices
-are mostly stored in location_recent_data and mac_recent_data. Both these tables
-store the same data but location_recent_data is partitioned by location of sensor,
-while mac_recent_data is partitioned by mac address of device. Both of these tables
-are also clustered by an arrival TimeUUID to complete the primary key.
+maintains a list of all access points identified in each location. The data stream from sensors
+is stored in **recent**. The table is partitioned using *location* and
+clustered with a timestamp.
 
-visit_index also keeps a log of first_arrival and recent_arrival for visits of each device.
-If a new packet is much older than that devices last most recent visit a new visit is
-created for that device.
+The **visit** table keeps a log of *first_arrival* and *recent_arrival* for each device visits.
+If a new packet is much more recent than the previous packets and new visit record is created.
 
 
