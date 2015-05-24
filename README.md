@@ -1,19 +1,22 @@
-## WiFi Traffic Listener
+## WiFi Device Activity
 
-This project contains code used to set up a WiFi traffic listener using
-a Raspberry Pi. It also contains code to create some endpoints for
+### Summary
+
+This project contains code used to monitor Wifi device activity with a Raspberry Pi.
+It also contains code to creat some endpoints for
 a web server to recieve the data from the Pi. Those endpoints
-are written in Python using Flask. This requires some way to deploy
+are written in Python using Flask. This also requires some way to deploy the app
 using WSGI. The endpoints recieve the data from the sensor
 and insert it into a Cassandra database.
 
-You should be able to run the sensor code on any computer with a network card
+You should be able to run the sensor code on any computer with a compatible network card
 that can be switched into monitor mode.
 
 The current setup I am using consists of two DigitalOcean virtual machines
 both with 512MB RAM. One machine runs as the web server for the sensors
 to communicate with which then sends the data to a second machine running
-Cassandra.
+Cassandra. Cassandra isn't happy with the super low memory resources but it still
+mostly works.
 
 ### Project Structure
 
