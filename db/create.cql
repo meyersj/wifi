@@ -5,6 +5,24 @@ CREATE KEYSPACE networks WITH REPLICATION = {
 
 USE networks;
 
+CREATE TABLE stream (
+    location TEXT,
+    stamp TIMEUUID,
+    sensor TEXT,
+    source TEXT,
+    dest TEXT,
+    arrival DECIMAL,
+    subtype TEXT,
+    signal INT,
+    PRIMARY KEY (location, stamp)
+) WITH CLUSTERING ORDER BY (stamp DESC) AND
+default_time_to_live = 86400;
+
+CREATE TABLE processed (
+    location TEXT PRIMARY KEY,
+    last_process TIMEUUID
+);
+
 CREATE TABLE recent (
     location TEXT,
     stamp TIMEUUID,
