@@ -4,7 +4,9 @@ from cassandra.cqlengine.management import sync_table, sync_type
 
 from app import app, debug, error
 from packets_pb2 import Payload
+from cqlmodels import Stream as StreamTable
 from cqlmodels import Manuf, Beacon, Recent, Visit, LocationIndex, ProcessStatus
+from handlers import FrameHandler
 from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
@@ -24,6 +26,7 @@ def query_wrapper(func):
         sync_table(LocationIndex) 
         sync_table(ProcessStatus) 
         sync_table(Manuf) 
+        sync_table(StreamTable) 
         return func(*args, **kwargs)
     return execute
 
@@ -66,4 +69,17 @@ class Processor(object):
             else: error("unhandled packet type")
             handler.process()
         return self.response()
+
+
+class Stream(Processor):
+    
+    @query_wrapper
+    def run(self):
+        if not self.success or not self.payload.data: return self.response()
+        kwargs = {"location":self.payload.location, "sensor":self.payload.sensor}
+        for data in self.payload.data:
+            handler = FrameHandler(data, **kwargs)
+            handler.process()
+        return self.response()
+   
 

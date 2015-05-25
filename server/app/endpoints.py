@@ -1,7 +1,7 @@
 from flask import request, jsonify
 
 from app import app, debug, error
-from processor import Processor
+from processor import Processor, Stream
 
 from query import Select
 
@@ -14,6 +14,14 @@ def index():
 def data_stream():
     processor = Processor(data=request.data)
     return processor.run()
+
+
+
+
+@app.route('/stream', methods=['POST'])
+def stream():
+    stream = Stream(data=request.data)
+    return stream.run()
 
 
 @app.route('/visits', methods=['GET'])

@@ -6,7 +6,7 @@ from cassandra.cqlengine import connection
 from cassandra.cqlengine.query import DoesNotExist
 
 from app import app, debug, error
-from cqlmodels import Manuf, Beacon, Recent, Visit, LocationIndex
+from cqlmodels import Stream, Manuf, Beacon, Recent, Visit, LocationIndex
 
 
 class FrameHandler(object):
@@ -15,8 +15,27 @@ class FrameHandler(object):
         self.location = location
         self.sensor = sensor
         self.data = data
+    
+    def construct(self):
+        params = {
+            "location":self.location,
+            "stamp":self.data.stamp,
+            "sensor":self.sensor,
+            "source":self.data.source,
+            "dest":self.data.destination,
+            "arrival":self.data.arrival,
+            "subtype":self.data.subtype,
+        }
+        if self.data.HasField("signal"): params["signal"] = self.data.signal
+        return params
+    
+    def insert(self, params):
+        stream = Stream(**params)
+        stream.save()
 
-    def process(self): raise NotImplemented
+    def process(self):
+        self.insert(self.construct())
+        #raise NotImplemented
 
 
 class ProbeHandler(FrameHandler):

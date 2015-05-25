@@ -14,6 +14,18 @@ class Manuf(Model):
     manuf          = columns.Text()
 
 
+class Stream(Model):
+    __table_name__ = "stream"
+    location       = columns.Text(primary_key=True)
+    stamp          = columns.TimeUUID(primary_key=True, clustering_order="desc")
+    sensor         = columns.Text()
+    source         = columns.Text()
+    dest           = columns.Text()
+    arrival        = columns.Decimal()
+    subtype        = columns.Text()
+    signal         = columns.Integer()
+
+
 class Recent(Model):
     __table_name__ = "recent"
     location       = columns.Text(primary_key=True)
