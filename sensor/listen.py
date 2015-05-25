@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, threading
 from uuid import uuid1
 from datetime import datetime
 
@@ -9,21 +9,21 @@ from packets_pb2 import Packet, Payload
 
 requests.packages.urllib3.disable_warnings()
 
-# time intervals
 INTERVAL = config.interval
 TIMEOUT  = config.timeout
+UNIQUE   = config.unique
 
-EXCLUDE = [config.sensor_mac]
-FRAMES = ["0x04", "0x05", "0x08"]
+EXCLUDE  = [config.sensor_mac]
+FRAMES   = ["0x04", "0x05", "0x08"]
 
 class Handler(object):
     
-    def __init__(self, dump, interval):
+    def __init__(self, unique, dump, interval):
         self.endpoint = config.endpoint
+        self.unique = unique
         self.dump = dump
         self.interval = interval
         self.keys = set()
-        self.tmp = []
         self.data = []
 
     def cast(self, value, new_type):
@@ -39,21 +39,29 @@ class Handler(object):
 
     def flush(self):
         now = float(time.time())
-        if now >= self.dump:
-            print "flushing"
-            self.dump = now + self.interval
+        if now >= self.unique:
+            self.unique = now + UNIQUE
             self.keys = set()
-            self.data += self.tmp
-            self.tmp = []
+        if now >= self.dump:
+            self.dump = now + self.interval
+            self.send()
+            self.data = []
        
-    def send(self):
-        print len(self.data)
-        payload = self.payload_builder()
+    def post(self, payload=None):
         headers = {'Content-type':'application/x-protobuf'}
         response = requests.post(self.endpoint,
             data=payload, headers=headers, verify=False)
         print response.text
 
+    def send(self):
+        payload = self.payload_builder()
+        thread = threading.Thread(
+            name="submit",
+            target=self.post,
+            kwargs={"payload":payload}
+        )
+        thread.start()
+    
     def set_field(self, field, value):
         if value: field = value
     
@@ -85,7 +93,7 @@ class Handler(object):
         if sub == "0x08": p.ssid = packet.wlan_mgt.get_field_value("ssid")
 
         self.keys.add(key)
-        self.tmp.append(p)
+        self.data.append(p)
         
         #print datetime.fromtimestamp((uuid1().time - 0x01b21dd213814000L)*100/1e9)
         print sub, p.arrival
@@ -101,7 +109,7 @@ class Listener(object):
     def listen(self, timeout=TIMEOUT, interval=INTERVAL):
         now = float(time.time()) 
         stop = now + timeout
-        self.handler = Handler(now + interval, interval)
+        self.handler = Handler(now + UNIQUE, now + interval, interval)
 
         capture = pyshark.LiveCapture(
             interface=config.interface,
