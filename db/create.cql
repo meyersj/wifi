@@ -1,3 +1,4 @@
+DROP KEYSPACE IF EXISTS networks;
 CREATE KEYSPACE networks WITH REPLICATION = {
     'class': 'SimpleStrategy',
     'replication_factor': 1
@@ -74,4 +75,5 @@ CREATE TABLE process_status (
     last_process TIMEUUID
 );
 
+COPY manuf (prefix, manuf) FROM '/root/manuf.csv';
 
