@@ -137,7 +137,7 @@ def main():
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
     listener = Listener(display_filter=display_filter)
-    listener.listen()
+    for i in range(0, 5): listener.listen()
 
 
 if __name__ == '__main__':
