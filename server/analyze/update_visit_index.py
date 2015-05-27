@@ -59,10 +59,12 @@ def process(groups):
     data = []
     for mac, records in groups.iteritems():
         count = len(records)
-        avg_signal = reduce(
-            lambda x,y: x+y,
-            [ record.signal for record in records ]
-        ) / count
+        try:
+            avg_signal = reduce(
+                lambda x,y: x+y,
+                [ record.signal for record in records ]
+            ) / count
+        except TypeError: avg_signal = 99999 # record.signal was probably null
         timestamp = (records[0].arrival + records[count-1].arrival) / 2
         data.append({
             "mac":mac,

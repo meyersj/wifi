@@ -68,6 +68,7 @@ class Select(object):
     def visitor_history(self, mac=""):
         resultset = Visit.objects.filter(mac=mac).limit(5)
         visits = []
+        device = None
         for record in resultset:
             duration = int(record.recent_arrival - record.first_arrival)
             pings = len(record.pings) 
@@ -79,23 +80,26 @@ class Select(object):
                 if record.manuf: device = record.manuf + "-" + record.mac[-8:]
                 else: device = record.mac
 
-                start_stamp = time.strftime(
-                    '%a %m/%d %I:%M am', time.localtime(int(record.first_arrival)))
-                end_stamp = time.strftime(
-                    '%a %m/%d %I:%M am', time.localtime(int(record.recent_arrival)))
+                start_time =  time.localtime(int(record.first_arrival))
+                end_time =  time.localtime(int(record.recent_arrival))
 
+                datestamp = time.strftime('%A %m/%d', start_time)
+                timerange = time.strftime('%I:%M am - ', start_time)
+                timerange += time.strftime('%I:%M am', end_time)
+                
                 m, s = divmod(duration, 60)
                 h, m = divmod(m, 60)
-                stamp = "%d:%02d" % (h, m)
+                durationstamp = "{0} hr {1} min".format(h, m)
                     
                 visits.append({
                     "mac":record.mac,
-                    "start_stamp":start_stamp,
-                    "end_stamp":end_stamp,
-                    "stamp":stamp,
-                    "device":device,
-                    "first_arrival":float(record.first_arrival),
-                    "recent_arrival":float(record.recent_arrival),
+                    "datestamp":datestamp,
+                    "timerange":timerange,
+                    "duration":durationstamp,
+                    "first_arrival":int(record.first_arrival),
+                    "recent_arrival":int(record.recent_arrival),
+                    "activity":pings,
+                    "rate":int(ping_rate * 60),
                 })
         return {"visits":visits, "device":device}
 
