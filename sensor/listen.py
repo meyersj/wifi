@@ -14,7 +14,7 @@ TIMEOUT  = config.timeout
 UNIQUE   = config.unique
 
 EXCLUDE  = [config.sensor_mac]
-FRAMES   = ["0x04", "0x05"]#, "0x08"]
+FRAMES   = ["0x04", "0x05"]
 
 class Handler(object):
     
@@ -137,7 +137,7 @@ def main():
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
     listener = Listener(display_filter=display_filter)
-    for i in range(0, 5): listener.listen()
+    listener.listen()
 
 
 if __name__ == '__main__':
