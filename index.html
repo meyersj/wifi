@@ -11,16 +11,30 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 main">
+            <h3>visitors around my apartment (based on wifi activity)</h3>
+            <p>
+              <a href="https://github.com/meyersj/wifi">github repository</a>
+              <br>
+              <br>
+              The data is collected using a Raspberry Pi and packaged up and
+              sent to a virtual machine running a python
+              <a href="http://flask.pocoo.org/">Flask</a>
+              web-app. That app will process the data and insert into a
+              <a href="http://cassandra.apache.org/">Cassandra</a>
+              cluster (1 node). There is a then cron job that will
+              process the recent data in one minute batches and group it into
+              <strong>visits</strong> per device.
+            </p>
             <form class="form-inline" style="padding-top:5px;">
               <div class="form-group">
-                <label for="input-age">Age(min)</label>
-                <input type="number" min="20" class="form-control"
-                  id="input-age" placeholder="60">
+                <label for="input-age">Window (min)</label>
+                <input type="number" min="15" max="120" class="form-control input-sm"
+                  id="input-age" placeholder="30">
               </div>
-              <div class="form-group">
-                <label for="input-activity">Activity</label>
-                <input type="number" min="0" class="form-control"
-                  id="input-activity" placeholder="2">
+              <div class="form-group" style="padding-left:5px;padding-right:5px;">
+                <label for="input-activity">Rate (minutes active/hour)</label>
+                <input type="number" min="1" max="60"class="form-control input-sm"
+                  id="input-activity" placeholder="15">
               </div>
               <button id="btn-update" type="submit"
                 class="btn btn-default">Update</button>
@@ -33,26 +47,40 @@
       </div>
     </div>
   <script>
-  
     var base_url = "http://wifi.meyersj.com";
     var h = null;
     var w = null;
     var svg = null;
 
-    function draw(age, min_record) {
-      svg.selectAll("*").remove();
+    function draw(age, rate) {
+      svg.selectAll("path")
+        .transition()
+        .style("opacity",0)
+        .duration(1000);
+      svg.selectAll("circle")
+        .transition()
+        .style("opacity",0)
+        .duration(1000);
+      svg.selectAll("text[lab=duration]")
+        .transition()
+        .style("opacity",0)
+        .duration(1000);
+      
       var args = {};
       args["location"] = "apartment";
       args["age"] = age;
-      args["min_records"] = min_record;
+      args["rate"] = rate;
       console.log(args);
+      
       $.getJSON(base_url + "/visits", args, function(data) {
+        svg.selectAll("*").remove();
         var end = (new Date).getTime() / 1000;
-        var start = end - (min_record * 60);
-        var left = 60; // padding
+        var start = end - (age * 60);
+        
+        var left = 150; // padding
         var time_scale = d3.scale.linear()
           .domain([start, end])
-          .range([left, w - left]);
+          .range([left, w - 200]);
         var incr = h / (data.visits.length + 1);
         var level = incr;
         var devices = [];
@@ -68,8 +96,17 @@
               pings.push({x:ping, y:level});
             });
             var line = [
-                {x:low, y:level, id:item.device},
-                {x:high, y:level, id:item.device}
+                {
+                    x:low,
+                    y:level,
+                    id:item.device,
+                    mac:item.mac,
+                    duration:item.duration
+                },
+                {
+                    x:high,
+                    y:level
+                },
             ];
             devices.push(line);
             level += incr;
@@ -84,14 +121,14 @@
             return d.y;
           });
 
-        var lines = svg.selectAll("path")
+        var visit_lines = svg.selectAll("path")
           .data(devices).enter()
           .append("path")
           .attr("d", function(d) { 
             return line(d);
           })
           .attr("stroke", "black")
-          .attr("stroke-width", 4);
+          .attr("stroke-width", 1);
         
         var ping_circles = svg.selectAll("circle[d=ping]")
           .data(pings).enter()
@@ -103,10 +140,23 @@
           .attr("cy", function(d) {
              return d.y;
           })
-          .attr("r", 4)
+          .attr("r", 3)
           .style("fill", "black");
       
-        if(data.visits.length < 50) { 
+        if(data.visits.length < 35) { 
+          
+          svg.append("circle")
+            .attr("cx", w - 190) 
+            .attr("cy", 10) 
+            .attr("r", 7)
+            .style("fill", "green")
+          
+          svg.append("text")
+            .text("click to see visitor's history")
+            .attr("x", w - 180)
+            .attr("y", 14) 
+            .attr("font-size", "10px");
+
           var circles = svg.selectAll("circle[d=end]")
             .data(devices).enter()
             .append("circle")
@@ -118,21 +168,60 @@
                 return d[0].y;
             })
             .attr("r", 7)
-            .style("fill", "green");
-
-          var label = svg.selectAll("text")
+            .style("fill", "green")
+            .on("click", function(d) {
+                var args = {mac:d[0].mac};
+                $.getJSON(base_url + "/visitor-history", args, function(data) {
+                    console.log(data);
+                    svg.selectAll("text[lab=visit]").remove();
+                    
+                    svg.selectAll("text[lab=active-device]").remove()
+                    svg.append("text")
+                      .attr("lab", "active-device")
+                      .text(data.device)
+                      .attr("x", w - 180)
+                      .attr("y", 40);
+                    
+                    svg.selectAll("text[lab=visit]")
+                      .data(data.visits).enter()
+                      .append("text")
+                      .attr("lab", "visit")
+                      .attr("font-size", "10px")
+                      .each(function(d2, i) {
+                        var visit = d3.select(this);
+                        console.log(visit);
+                        var section = 60 + i * 40;
+                        visit.append("tspan")
+                          .text("start: " + d2.start_stamp)
+                          .attr("x", w - 190)
+                          .attr("y", section)
+                        visit.append("tspan")
+                          .text("end: " + d2.end_stamp)
+                          .attr("x", w - 190)
+                          .attr("y", section + 10);
+                        visit.append("tspan")
+                          .text("duration: " + d2.stamp)
+                          .attr("x", w - 190)
+                          .attr("y", section + 20);
+                      });
+                });
+            });
+        
+          var durationLabel = svg.selectAll("text[lab=duration]")
             .data(devices).enter()
             .append("text")
+            .attr("lab", "duration")
             .text(function(d) {
-              return d[0].id;
+              return d[0].duration + " " + d[0].id;
             })
             .attr("x", function(d) {
-              return d[1].x + 6;
+              return 0;
             })
             .attr("y", function(d) {
               return d[0].y + 4;
             })
             .attr("font-size", "10px");
+
         }
       });
     }
@@ -140,9 +229,12 @@
 
     $(document).ready(function() {
       w = $("#visual").outerWidth();
-      h = 600;
+      h = document.body.clientHeight * 0.65;
       svg = create_canvas("#visual", h, w);
-      draw(60, 2);
+      draw(30, 15);
+
+
+
     });
  
     function create_canvas(div, height, width) {
@@ -153,8 +245,8 @@
     }
 
     $("#btn-update").click( function(event) {
-      var age = $("#input-age").val() || 60;
-      var activity = $("#input-activity").val() || 2;
+      var age = $("#input-age").val() || 30;
+      var activity = $("#input-activity").val() || 15;
       event.preventDefault();
       draw(age, activity);
     });    
