@@ -66,7 +66,7 @@ class Select(object):
 
     @query_wrapper
     def visitor_history(self, mac=""):
-        resultset = Visit.objects.filter(mac=mac)
+        resultset = Visit.objects.filter(mac=mac).limit(5)
         visits = []
         for record in resultset:
             duration = int(record.recent_arrival - record.first_arrival)
