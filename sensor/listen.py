@@ -14,7 +14,7 @@ TIMEOUT  = config.timeout
 UNIQUE   = config.unique
 
 EXCLUDE  = [config.sensor_mac]
-FRAMES   = ["0x04", "0x05", "0x08"]
+FRAMES   = ["0x04", "0x05"]#, "0x08"]
 
 class Handler(object):
     
@@ -46,11 +46,12 @@ class Handler(object):
             self.dump = now + self.interval
             self.send()
             self.data = []
-       
+      
+    # runs in a background thread
     def post(self, payload=None):
         headers = {'Content-type':'application/x-protobuf'}
         response = requests.post(self.endpoint,
-            data=payload, headers=headers, verify=False)
+            data=payload, headers=headers, verify=False, timeout=5)
         print response.text
 
     def send(self):
