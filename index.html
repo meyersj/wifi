@@ -48,8 +48,8 @@
       console.log(args);
       $.getJSON(base_url + "/visits", args, function(data) {
         var end = (new Date).getTime() / 1000;
-        var start = end - (60 *60);
-        var left = 60;
+        var start = end - (min_record * 60);
+        var left = 60; // padding
         var time_scale = d3.scale.linear()
           .domain([start, end])
           .range([left, w - left]);
