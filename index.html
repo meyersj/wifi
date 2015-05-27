@@ -27,14 +27,14 @@
             </p>
             <form class="form-inline" style="padding-top:5px;">
               <div class="form-group">
-                <label for="input-age">Window (min)</label>
+                <label for="input-age">Time Window (min)</label>
                 <input type="number" min="15" max="120" class="form-control input-sm"
                   id="input-age" placeholder="30">
               </div>
               <div class="form-group" style="padding-left:5px;padding-right:5px;">
-                <label for="input-activity">Rate (minutes active/hour)</label>
+                <label for="input-activity">Rate (pings/hour)</label>
                 <input type="number" min="1" max="60"class="form-control input-sm"
-                  id="input-activity" placeholder="15">
+                  id="input-activity" placeholder="30">
               </div>
               <button id="btn-update" type="submit"
                 class="btn btn-default">Update</button>
@@ -51,6 +51,8 @@
     var h = null;
     var w = null;
     var svg = null;
+    var padtop = 10;
+    var active = null;
 
     function draw(age, rate) {
       svg.selectAll("path")
@@ -77,20 +79,19 @@
         var end = (new Date).getTime() / 1000;
         var start = end - (age * 60);
         
-        var left = 150; // padding
+        var left = 140; // padding
         var time_scale = d3.scale.linear()
           .domain([start, end])
           .range([left, w - 200]);
-        var incr = h / (data.visits.length + 1);
-        var level = incr;
+        var incr = (h - padtop) / (data.visits.length + 1);
+        var level = padtop + incr;
         var devices = [];
         var pings = []
         $(data.visits).each(function(index, item) {
             if(item.first_arrival < start) var low = left;
             else var low = time_scale(item.first_arrival);
             var high = time_scale(item.recent_arrival);
-            pings.push({x:low, y:level});
-            pings.push({x:high, y:level});
+            
             $(item.data).each(function(index2, item2) {
               var ping = time_scale(item2[0]);
               pings.push({x:ping, y:level});
@@ -143,33 +144,63 @@
           .attr("r", 3)
           .style("fill", "black");
       
-        if(data.visits.length < 35) { 
-          
-          svg.append("circle")
-            .attr("cx", w - 190) 
-            .attr("cy", 10) 
-            .attr("r", 7)
-            .style("fill", "green")
+        if(data.visits.length < 20) { 
           
           svg.append("text")
-            .text("click to see visitor's history")
-            .attr("x", w - 180)
-            .attr("y", 14) 
-            .attr("font-size", "10px");
+            .text("click to show visitor history ")
+            .attr("x", 0)
+            .attr("y", 16) 
+            .attr("font-size", "15px");
+          
+          svg.append("circle")
+            .attr("cx", 210) 
+            .attr("cy", 11) 
+            .attr("r", 10)
+            .style("fill", "green")
 
           var circles = svg.selectAll("circle[d=end]")
             .data(devices).enter()
             .append("circle")
             .attr("d", "end")
+            .attr("device", function(d) {
+                return d[0].mac;
+            })
             .attr("cx", function(d) {
-                 return d[1].x - 11;
+                 return left; //d[1].x - 11;
             })
             .attr("cy", function(d) {
                 return d[0].y;
             })
-            .attr("r", 7)
+            .attr("r", 10)
             .style("fill", "green")
+            .on("mouseover", function(d) {
+                if(active !== d3.select(this).attr("device"))
+                    circle_transition(this, "blue", 15);
+                    //d3.select(this)
+                    //    .style("fill", "blue")
+                    //    .attr("r", 15);
+            })
+            .on("mouseout", function(d) {
+                if(active !== d3.select(this).attr("device"))
+                    circle_transition(this, "green", 10);
+                    //d3.select(this).style("fill", "green")
+                    //    .attr("r", 10);
+
+            })
             .on("click", function(d) {
+                circle_transition("circle[device='" + active + "']", "green", 10);
+                
+                //d3.select("circle[device='" + active + "']")
+                //  .style("fill", "green")
+                //  .attr("r", 10);
+                
+                active = d3.select(this).attr("device");
+                circle_transition(this, "red", 15);
+                
+                //d3.select(this)
+                //  .style("fill", "red")
+                //  .attr("r", 15);
+                
                 var args = {mac:d[0].mac};
                 $.getJSON(base_url + "/visitor-history", args, function(data) {
                     console.log(data);
@@ -190,19 +221,23 @@
                       .each(function(d2, i) {
                         var visit = d3.select(this);
                         console.log(visit);
-                        var section = 60 + i * 40;
+                        var section = 60 + i * 50;
                         visit.append("tspan")
-                          .text("start: " + d2.start_stamp)
+                          .text(d2.datestamp)
                           .attr("x", w - 190)
                           .attr("y", section)
                         visit.append("tspan")
-                          .text("end: " + d2.end_stamp)
+                          .text(d2.timerange)
                           .attr("x", w - 190)
-                          .attr("y", section + 10);
+                          .attr("y", section + 10)
                         visit.append("tspan")
-                          .text("duration: " + d2.stamp)
+                          .text(d2.duration)
                           .attr("x", w - 190)
                           .attr("y", section + 20);
+                        visit.append("tspan")
+                          .text(d2.activity + " pings, " + d2.rate + " per hour")
+                          .attr("x", w - 190)
+                          .attr("y", section + 30);
                       });
                 });
             });
@@ -231,12 +266,21 @@
       w = $("#visual").outerWidth();
       h = document.body.clientHeight * 0.65;
       svg = create_canvas("#visual", h, w);
-      draw(30, 15);
+      draw(30, 30);
 
 
 
     });
- 
+
+    function circle_transition(selector, color, size) {
+      d3.select(selector)
+        .transition().duration(100)
+        .style("fill", color)
+        .attr("r", size);
+
+    }
+
+
     function create_canvas(div, height, width) {
       return d3.select(div)
         .append("svg")
@@ -246,7 +290,7 @@
 
     $("#btn-update").click( function(event) {
       var age = $("#input-age").val() || 30;
-      var activity = $("#input-activity").val() || 15;
+      var activity = $("#input-activity").val() || 30;
       event.preventDefault();
       draw(age, activity);
     });    
