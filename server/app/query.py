@@ -30,8 +30,8 @@ class Select(object):
                 else: ping_rate = len(visit.pings) / (duration / 60.0)
                 
                 if rate / 60.0 < ping_rate and duration / 60.0 > 5:
-                    debug(str(len(visit.pings)) + " " + str(duration / 60.0))
-                    debug(rate)
+                    #debug(str(len(visit.pings)) + " " + str(duration / 60.0))
+                    #debug(rate)
                 
                     pings = filter(
                         lambda x: x > recent,
@@ -60,7 +60,7 @@ class Select(object):
                         "recent_arrival":float(visit.recent_arrival),
                         "data":data
                     })
-                else: debug("NONE")
+                #else: debug("NONE")
         return {"visits":visits}
 
 
