@@ -11,19 +11,20 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 main">
-            <h3>visitors around my apartment (based on wifi activity)</h3>
+            <h3>visitors around my apartment</h3>
+            <h3><a href="https://github.com/meyersj/wifi">github repository</a></h3>
+            <br>
             <p>
-              <a href="https://github.com/meyersj/wifi">github repository</a>
-              <br>
-              <br>
-              The data is collected using a Raspberry Pi and packaged up and
-              sent to a virtual machine running a python
-              <a href="http://flask.pocoo.org/">Flask</a>
-              web-app. That app will process the data and insert into a
-              <a href="http://cassandra.apache.org/">Cassandra</a>
-              cluster (1 node). There is a then cron job that will
-              process the recent data in one minute batches and group it into
-              <strong>visits</strong> per device.
+              The wifi packet headers are collected with a network card in a
+              Raspberry Pi running in monitor mode. The headers are
+              packaged up and sent to a virtual machine running a python
+              Flask app. That app will process the data and insert it into a
+              Cassandra cluster (1 node). A cron job runs every minute
+              that queries the most-recent unprocessed data, batches it
+              and then associates it with an exisiting
+              <strong>visit</strong> or creates a new one.
+              Statistics about each <strong>visit</strong>
+              are updated as data comes in. DISCLAIMER: I am learning d3.
             </p>
             <form class="form-inline" style="padding-top:5px;">
               <div class="form-group">
@@ -51,249 +52,275 @@
     var h = null;
     var w = null;
     var svg = null;
+    var spacing = 40;
     var padtop = 10;
     var active = null;
-
-    function draw(age, rate) {
-      svg.selectAll("path")
-        .transition()
-        .style("opacity",0)
-        .duration(1000);
-      svg.selectAll("circle")
-        .transition()
-        .style("opacity",0)
-        .duration(1000);
-      svg.selectAll("text[lab=duration]")
-        .transition()
-        .style("opacity",0)
-        .duration(1000);
-      
-      var args = {};
-      args["location"] = "apartment";
-      args["age"] = age;
-      args["rate"] = rate;
-      console.log(args);
-      
-      $.getJSON(base_url + "/visits", args, function(data) {
-        svg.selectAll("*").remove();
-        var end = (new Date).getTime() / 1000;
-        var start = end - (age * 60);
-        
-        var left = 140; // padding
-        var time_scale = d3.scale.linear()
-          .domain([start, end])
-          .range([left, w - 200]);
-        var incr = (h - padtop) / (data.visits.length + 1);
-        var level = padtop + incr;
-        var devices = [];
-        var pings = []
-        $(data.visits).each(function(index, item) {
-            if(item.first_arrival < start) var low = left;
-            else var low = time_scale(item.first_arrival);
-            var high = time_scale(item.recent_arrival);
-            
-            $(item.data).each(function(index2, item2) {
-              var ping = time_scale(item2[0]);
-              pings.push({x:ping, y:level});
-            });
-            var line = [
-                {
-                    x:low,
-                    y:level,
-                    id:item.device,
-                    mac:item.mac,
-                    duration:item.duration
-                },
-                {
-                    x:high,
-                    y:level
-                },
-            ];
-            devices.push(line);
-            level += incr;
-
-        });
-        
-        var line = d3.svg.line()
-          .x(function(d, i) {
-            return d.x;
-          })
-          .y(function(d, i) {
-            return d.y;
-          });
-
-        var visit_lines = svg.selectAll("path")
-          .data(devices).enter()
-          .append("path")
-          .attr("d", function(d) { 
-            return line(d);
-          })
-          .attr("stroke", "black")
-          .attr("stroke-width", 1);
-        
-        var ping_circles = svg.selectAll("circle[d=ping]")
-          .data(pings).enter()
-          .append("circle")
-          .attr("d", "ping")
-          .attr("cx", function(d) {
-             return d.x;
-          })
-          .attr("cy", function(d) {
-             return d.y;
-          })
-          .attr("r", 3)
-          .style("fill", "black");
-      
-        if(data.visits.length < 20) { 
-          
-          svg.append("text")
-            .text("click to show visitor history ")
-            .attr("x", 0)
-            .attr("y", 16) 
-            .attr("font-size", "15px");
-          
-          svg.append("circle")
-            .attr("cx", 210) 
-            .attr("cy", 11) 
-            .attr("r", 10)
-            .style("fill", "green")
-
-          var circles = svg.selectAll("circle[d=end]")
-            .data(devices).enter()
-            .append("circle")
-            .attr("d", "end")
-            .attr("device", function(d) {
-                return d[0].mac;
-            })
-            .attr("cx", function(d) {
-                 return left; //d[1].x - 11;
-            })
-            .attr("cy", function(d) {
-                return d[0].y;
-            })
-            .attr("r", 10)
-            .style("fill", "green")
-            .on("mouseover", function(d) {
-                if(active !== d3.select(this).attr("device"))
-                    circle_transition(this, "blue", 15);
-                    //d3.select(this)
-                    //    .style("fill", "blue")
-                    //    .attr("r", 15);
-            })
-            .on("mouseout", function(d) {
-                if(active !== d3.select(this).attr("device"))
-                    circle_transition(this, "green", 10);
-                    //d3.select(this).style("fill", "green")
-                    //    .attr("r", 10);
-
-            })
-            .on("click", function(d) {
-                circle_transition("circle[device='" + active + "']", "green", 10);
-                
-                //d3.select("circle[device='" + active + "']")
-                //  .style("fill", "green")
-                //  .attr("r", 10);
-                
-                active = d3.select(this).attr("device");
-                circle_transition(this, "red", 15);
-                
-                //d3.select(this)
-                //  .style("fill", "red")
-                //  .attr("r", 15);
-                
-                var args = {mac:d[0].mac};
-                $.getJSON(base_url + "/visitor-history", args, function(data) {
-                    console.log(data);
-                    svg.selectAll("text[lab=visit]").remove();
-                    
-                    svg.selectAll("text[lab=active-device]").remove()
-                    svg.append("text")
-                      .attr("lab", "active-device")
-                      .text(data.device)
-                      .attr("x", w - 180)
-                      .attr("y", 40);
-                    
-                    svg.selectAll("text[lab=visit]")
-                      .data(data.visits).enter()
-                      .append("text")
-                      .attr("lab", "visit")
-                      .attr("font-size", "10px")
-                      .each(function(d2, i) {
-                        var visit = d3.select(this);
-                        console.log(visit);
-                        var section = 60 + i * 50;
-                        visit.append("tspan")
-                          .text(d2.datestamp)
-                          .attr("x", w - 190)
-                          .attr("y", section)
-                        visit.append("tspan")
-                          .text(d2.timerange)
-                          .attr("x", w - 190)
-                          .attr("y", section + 10)
-                        visit.append("tspan")
-                          .text(d2.duration)
-                          .attr("x", w - 190)
-                          .attr("y", section + 20);
-                        visit.append("tspan")
-                          .text(d2.activity + " pings, " + d2.rate + " per hour")
-                          .attr("x", w - 190)
-                          .attr("y", section + 30);
-                      });
-                });
-            });
-        
-          var durationLabel = svg.selectAll("text[lab=duration]")
-            .data(devices).enter()
-            .append("text")
-            .attr("lab", "duration")
-            .text(function(d) {
-              return d[0].duration + " " + d[0].id;
-            })
-            .attr("x", function(d) {
-              return 0;
-            })
-            .attr("y", function(d) {
-              return d[0].y + 4;
-            })
-            .attr("font-size", "10px");
-
-        }
-      });
-    }
-
-
+    var scaled = false;
+    var ACTIVE_COLOR = "#9698AA";   // grey 
+    var DEFAULT_COLOR = "#1A247A";  // dark blue
+    var HOVER_COLOR = "#2634AF";    // lighter blue
+    
     $(document).ready(function() {
       w = $("#visual").outerWidth();
-      h = document.body.clientHeight * 0.65;
-      svg = create_canvas("#visual", h, w);
+      svg = create_canvas("#visual", 100, w);
       draw(30, 30);
-
-
-
     });
-
-    function circle_transition(selector, color, size) {
-      d3.select(selector)
-        .transition().duration(100)
-        .style("fill", color)
-        .attr("r", size);
-
-    }
-
-
-    function create_canvas(div, height, width) {
-      return d3.select(div)
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-    }
-
+    
     $("#btn-update").click( function(event) {
       var age = $("#input-age").val() || 30;
       var activity = $("#input-activity").val() || 30;
       event.preventDefault();
       draw(age, activity);
     });    
+
+   
+    function activate_history(mode) {
+        if(mode == true) {
+          scale_visits(0.8);
+          svg.append("rect")
+            .attr("id", "history-button")
+            .attr("x", w - 190)
+            .attr("y", 0)
+            .attr("width", 190)
+            .attr("height", 30)
+            .attr("rx", 5)
+            .attr("ry", 5)
+            .style("fill", HOVER_COLOR)
+            .on("click", function(d) {
+              activate_history(false);
+            });
+          svg.append("text")
+            .attr("id", "history-label")
+            .text("Click to turn off histroy")
+            .attr("x", w - 183)
+            .attr("y", 19)
+            .attr("font-size", "12px")
+            .style("fill", "white");
+        }
+        else if(mode == false) {
+          var id = "#action-" + active.replace(/:/g, '');
+          change_color(id, DEFAULT_COLOR);
+          scale_visits(1);
+          svg.selectAll(".active-device").remove();
+          svg.selectAll(".history").remove();
+          svg.selectAll("#history-button").remove();
+          svg.selectAll("#history-label").remove();
+          active = null;
+        }
+    }
+    
+    function draw(age, rate) {
+      active = null;
+      svg = create_canvas("#visual", h, w);
+      svg.append("text")
+        .text("loading ... ")
+        .attr("x", 0)
+        .attr("y", 16) 
+        .attr("font-size", "20px");
+      
+      var args = {};
+      args["location"] = "apartment";
+      args["age"] = age;
+      args["rate"] = rate;
+      
+      $.getJSON(base_url + "/visits", args, function(data) {
+        var h = (data.visits.length + 1) * spacing;
+        svg = create_canvas("#visual", h, w);
+
+        var end = (new Date).getTime() / 1000;
+        var start = end - (age * 60);
+        var time_scale = d3.scale.linear()
+          .domain([start, end])
+          .range([0, w - 150]);
+  
+        var pings = []
+        var visits = []
+        var meta = []
+        $(data.visits).each(function(vi, vd) {
+          if(vd.data.length > 0) {
+            meta.push({
+              mac:vd.mac,
+              manuf:vd.manuf
+            })
+            var y = visit_height(vi);
+            visits.push([
+              {x:time_scale(vd.data[0][0]), y:y},
+              {x:time_scale(vd.data[vd.data.length - 1][0]), y:y}
+            ]);
+            $(vd.data).each(function(di, dd) {
+              pings.push({group:vi, x:time_scale(dd[0]), y:y});
+            });
+          }
+        });
+        add_visit_timeline(visits);
+        add_pings(pings);
+        add_visit_metadata(meta);
+      });
+    }
+
+    function change_color(selector, color, size) {
+      d3.select(selector)
+        .transition()
+        .duration(50)
+        .style("fill", color)
+        .attr("r", size);
+    }
+
+    function create_canvas(div, height, width) {
+      if(svg) svg.remove();
+      return d3.select(div)
+        .append("svg")
+        .attr("height", height)
+        .attr("width", width);
+    }
+    
+    function visit_height(level) {
+      return 20 + (level + 1) * spacing;  
+    }
+    
+    function display_name(mac, manuf) {
+      if(manuf) return manuf + "-" + mac.substr(9, 17);
+      else return mac;
+    }
+    
+    function add_pings(pings) {
+      svg.selectAll(".ping")
+        .data(pings)
+        .enter()
+        .append("circle")
+        .attr("class", "ping")
+        .attr("cx", function(d) { return d.x + 150; })
+        .attr("cy", function(d) { return d.y; })
+        .attr("r", 3)
+        .style("fill", "black");
+    }
+   
+
+    //function line_function(ratio) {
+    //     //}
+    
+    function add_visit_timeline(visits) {
+      var line = d3.svg.line()
+        .x(function(d, i) { return d.x + 150; })
+        .y(function(d, i) { return d.y; });
+      
+      svg.selectAll(".visit-timeline")
+        .data(visits)
+        .enter()
+        .append("path")
+        .attr("class", "visit-timeline")
+        .attr("d", function(d) { return line(d); })
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+    }
+
+    function scale_visits(ratio) {
+      svg.selectAll(".ping")
+        .transition()
+        .duration(500)
+        .delay(function(d, i) { return d.group * 50; })
+        .attr("cx", function(d) { return d.x * ratio + 150; })
+        .attr("cy", function(d) { return d.y; })
+      
+      var line = d3.svg.line()
+        .x(function(d, i) { return d.x * ratio + 150; })
+        .y(function(d, i) { return d.y; });
+      
+      svg.selectAll(".visit-timeline")
+        .transition()
+        .duration(500)
+        .delay(function(d, i) { return i * 50; })
+        .attr("d", function(d) { return line(d); })
+    }
+    
+    
+    function history_label(visit, text, x, y) {
+      visit.append("tspan")
+        .text(text)
+        .attr("x", w - 190 + x)
+        .attr("y", y);
+    }
+
+    
+    function add_visit_metadata(meta) {
+            
+      svg.selectAll(".action-box")
+        .data(meta)
+        .enter()
+        .append("rect")
+        .attr("class", "action-circle")
+        .attr("id", function(d, i) { return "action-" + d.mac.replace(/:/g, ''); })
+        .attr("mac", function(d) { return d.mac; })
+        .attr("x", 0)
+        .attr("y", function(d, i) { return visit_height(i) - 15; })
+        .attr("width", 130)
+        .attr("height", 30)
+        .attr("rx", 5)
+        .attr("ry", 5)
+        .style("fill", DEFAULT_COLOR)
+        .on("mouseover", function(d) {
+            if(active !== d3.select(this).attr("mac"))
+                change_color(this, HOVER_COLOR);
+        })
+        .on("mouseout", function(d) {
+            if(active !== d3.select(this).attr("mac"))
+                change_color(this, DEFAULT_COLOR);
+        })
+        .on("click", function(d, i) {
+          if(!active) activate_history(true);
+          var new_active = d3.select(this).attr("mac");
+          change_color(this, ACTIVE_COLOR);
+          if(new_active !== active) {
+            if(active) {
+              var id = "#action-" + active.replace(/:/g, '');
+              change_color(id, DEFAULT_COLOR);
+            }
+            active = new_active;
+          
+            $.getJSON(base_url + "/visitor-history", {mac:d.mac}, function(data) {
+              console.log(data);
+              
+              svg.selectAll(".active-device").remove();
+              svg.selectAll(".history").remove();
+              svg.append("text")
+                .attr("class", "active-device")
+                .text(display_name(d.mac, d.manuf))
+                .attr("x", w - 180)
+                .attr("y", spacing * 1.5 + 3);
+              svg.selectAll(".history")
+                .data(data.visits).enter()
+                .append("text")
+                .attr("class", "history")
+                .attr("font-size", "12px")
+                .each(function(vd, i) {
+                  var visit = d3.select(this);
+                  var level = visit_height(i * 1.5) + spacing;
+                  var labels = [
+                    vd.datestamp,
+                    vd.timerange,
+                    vd.duration,
+                    "pings: " + vd.activity + ", rate: " + vd.rate
+                  ];
+                  $(labels).each(function(index, item) {
+                    history_label(visit, item, 0, (index * 12) + level);
+
+                  });
+                });
+            });
+          }
+        });
+            
+        svg.selectAll(".visit-label")
+          .data(meta)
+          .enter()
+          .append("text")
+          .attr("class", "visit-label")
+          .text(function(d) { return display_name(d.mac, d.manuf); })
+          .attr("x", 7)
+          .attr("y", function(d, i) { return visit_height(i) + 4; })
+          .attr("font-size", "12px")
+          .style("fill", "white");
+    }
 
 
 
