@@ -55,7 +55,7 @@ class ProbeHandler(FrameHandler):
         return params
 
     def update_visit(self, mac):
-        recent = self.data.arrival - 60 * 15.0
+        recent = self.data.arrival - 60 * 30.0
         record = Visit.objects\
             .filter(mac=mac)\
             .first()

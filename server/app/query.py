@@ -10,7 +10,7 @@ from processor import query_wrapper
 
 
 HOUR_24 = 60 * 24
-
+DURATION_THRESHOLD = 5
 
 class Select(object):
 
@@ -23,16 +23,16 @@ class Select(object):
         visits = []
         for record in resultset:
             visit = Visit.objects(mac=record.mac, stamp=record.first_stamp).first()
-            if visit:
+            if visit and len(visit.pings) > 1:
                 duration = int(visit.recent_arrival - visit.first_arrival)
                
+                # compute ping rate
                 if duration == 0: ping_rate = 0
                 else: ping_rate = len(visit.pings) / (duration / 60.0)
                 
-                if rate / 60.0 < ping_rate and duration / 60.0 > 5:
-                    debug(str(len(visit.pings)) + " " + str(duration / 60.0))
-                    debug(rate)
-                
+                # continue if ping rate is within threshold specified by user
+                if rate / 60.0 < ping_rate and duration / 60.0 >= DURATION_THRESHOLD:
+                    # filter out data only falling within age window
                     pings = filter(
                         lambda x: x > recent,
                         [float(ping) for ping in visit.pings]
@@ -42,11 +42,12 @@ class Select(object):
                         visit.signals[0:len(pings)],
                         visit.counts[0:len(pings)]
                     )
-                    mac_hash = hashlib.md5(record.mac).hexdigest()[0:6]
-                    dev = record.mac[-8:]
-                    if visit.manuf:
-                        device = visit.manuf + "-" + dev
-                    else: device = mac_hash
+                    
+                    #mac_hash = hashlib.md5(record.mac).hexdigest()[0:6]
+                    #dev = record.mac[-8:]
+                    #if visit.manuf:
+                    #    device = visit.manuf + "-" + dev
+                    #else: device = mac_hash
                     
                     m, s = divmod(duration, 60)
                     h, m = divmod(m, 60)
@@ -54,28 +55,32 @@ class Select(object):
                     
                     visits.append({
                         "mac":record.mac,
-                        "duration":stamp,
-                        "device":device,
+                        "manuf":visit.manuf,
+                        #"duration":stamp,
+                        #"device":device,
                         "first_arrival":float(visit.first_arrival),
                         "recent_arrival":float(visit.recent_arrival),
-                        "data":data
+                        "data":data,
+                        "rate":ping_rate
                     })
-                else: debug("NONE")
+                #else: debug("NONE")
+        #sorted_visits = 
         return {"visits":visits}
 
 
     @query_wrapper
     def visitor_history(self, mac=""):
-        resultset = Visit.objects.filter(mac=mac).limit(5)
+        resultset = Visit.objects.filter(mac=mac)#.limit()
         visits = []
         device = None
+        ret_val = {}
         for record in resultset:
             duration = int(record.recent_arrival - record.first_arrival)
             pings = len(record.pings) 
             if duration == 0: ping_rate = 0
             else: ping_rate = pings / (duration / 60.0)
             
-            if duration > 1: 
+            if duration >= DURATION_THRESHOLD: 
                 device = record.mac[-8:]
                 if record.manuf: device = record.manuf + "-" + record.mac[-8:]
                 else: device = record.mac
@@ -101,7 +106,7 @@ class Select(object):
                     "activity":pings,
                     "rate":int(ping_rate * 60),
                 })
-        return {"visits":visits, "device":device}
+        return {"visits":visits, "mac":device}
 
 
 
