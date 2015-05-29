@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <link rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js">
+    </script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 main">
+          <h2>System Architecure</h2>
+            <br>
+            <a class="btn btn-default" href="index.html"
+              role="button">Live Display</a>
+            <a class="btn btn-default" href="https://github.com/meyersj/wifi"
+              role="button">Github Repository</a>
+            <br>
+            <h3>Sensor <small>Raspberry Pi</small></h3>
+              <p>
+              The sensor was built using a Raspberry Pi with a USB Wi-Fi network card.
+              The network card must be capable of being switched into monitor
+              to allow it to listen for all traffic, instead of only traffic
+              directed to it. A simple script in Python is executed continually
+              as a cron job that does the following:
+              <ol>
+                <li>Filter out packets that are either probe requests
+                or probe responses</li>
+                <li>Extract packet headers such as frame type, arrival time,
+                source/destination mac addresses and signal strength</li>
+                <li>Serialize data using protocol buffers</li>
+                <li>Send payload to server application as POST request</li>
+              </ol>
+              The <a href="https://github.com/KimiNewt/pyshark">pyshark</a>
+              library is used to parse the raw packets collected by tshark.
+            </p>
+            <p>
+            </p>
+            <h3>Server <small>Python Flask</small></h3>
+            The web-server was built using Python and Flask. Simple endpoints
+            were written for both uploading packet data and for querying
+            summarized data.
+            <h4>Uploading</h5>
+            Endpoint exists for sensor to upload packet data as json. Data
+            recieved from sensor is processed as follows: 
+            <ol>
+            <li>Deserialize protocol buffer payload</li>
+            <li>Grab <var>mac</var> address of device</li>
+              <ul>
+                <li>if packet is a <strong>probe request</strong>
+                then <var>mac</var> = source address</li>
+                <li>if packet is a <strong>probe response</strong> then
+                <var>mac</var> = destination address</li>
+              </ul>
+            <li>Insert record into the <var>Recent</var> table in Cassandra table</li>
+            <li>The data is partitioned by location and timeuuid</li>
+            </ol>
+            <h4>Querying<h5>
+            TODO
+            <h3>Database <small>Cassandra</small></h3>
+            The packets are being stored in a single node Cassandra cluster
+            running on a DigitalOcean droplet.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

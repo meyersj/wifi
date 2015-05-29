@@ -11,20 +11,17 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 main">
-            <h3>visitors around my apartment</h3>
-            <h3><a href="https://github.com/meyersj/wifi">github repository</a></h3>
+            <h2>Wi-Fi Activity <small>visitors around my apartment</small></h3>
             <br>
+            <a class="btn btn-default" href="architecture.html"
+              role="button">System Architecture</a>
+            <a class="btn btn-default" href="https://github.com/meyersj/wifi"
+              role="button">Github Repository</a>
+            <br><br>
             <p>
-              The wifi packet headers are collected with a network card in a
-              Raspberry Pi running in monitor mode. The headers are
-              packaged up and sent to a virtual machine running a python
-              Flask app. That app will process the data and insert it into a
-              Cassandra cluster (1 node). A cron job runs every minute
-              that queries the most-recent unprocessed data, batches it
-              and then associates it with an exisiting
-              <strong>visit</strong> or creates a new one.
-              Statistics about each <strong>visit</strong>
-              are updated as data comes in. DISCLAIMER: I am learning d3.
+            When the page has loaded, click on a device label to
+            view history of previous visits.
+            <br>
             </p>
             <form class="form-inline" style="padding-top:5px;">
               <div class="form-group">
@@ -91,7 +88,7 @@
             });
           svg.append("text")
             .attr("id", "history-label")
-            .text("Click to turn off histroy")
+            .text("Click to turn off history")
             .attr("x", w - 183)
             .attr("y", 19)
             .attr("font-size", "12px")
@@ -108,15 +105,32 @@
           active = null;
         }
     }
-    
+   
+
+    function loading() {
+      var load = ["loading "];
+      for (var i = 0; i < 500; i++) load.push(".");
+      
+      svg.selectAll("text")
+        .data(load)
+        .enter()
+        .append("text")
+        .transition()
+        .delay(function(d, i) { return i * 250; })
+        .text(function(d) { return d; })
+        .attr("x", function(d, i) {
+          if (i > 0) return i * 15 + 110;
+          else return 50;
+        })
+        .attr("y", 50) 
+        .attr("font-size", "20px")
+        .attr("text-align", "middle");
+
+    }
     function draw(age, rate) {
       active = null;
       svg = create_canvas("#visual", h, w);
-      svg.append("text")
-        .text("loading ... ")
-        .attr("x", 0)
-        .attr("y", 16) 
-        .attr("font-size", "20px");
+      loading(); 
       
       var args = {};
       args["location"] = "apartment";
@@ -175,7 +189,7 @@
     }
     
     function visit_height(level) {
-      return 20 + (level + 1) * spacing;  
+      return 20 + (level) * spacing;  
     }
     
     function display_name(mac, manuf) {
@@ -285,8 +299,8 @@
               svg.append("text")
                 .attr("class", "active-device")
                 .text(display_name(d.mac, d.manuf))
-                .attr("x", w - 180)
-                .attr("y", spacing * 1.5 + 3);
+                .attr("x", w - 190)
+                .attr("y", visit_height(1) + 4);
               svg.selectAll(".history")
                 .data(data.visits).enter()
                 .append("text")
@@ -294,7 +308,7 @@
                 .attr("font-size", "12px")
                 .each(function(vd, i) {
                   var visit = d3.select(this);
-                  var level = visit_height(i * 1.5) + spacing;
+                  var level = spacing * 2 + visit_height(i * 1.5) + 4;
                   var labels = [
                     vd.datestamp,
                     vd.timerange,
