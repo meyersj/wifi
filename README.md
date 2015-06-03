@@ -1,12 +1,15 @@
 ## WiFi Device Activity
 
+### Live Display
+Check out a [Live Display](http://meyersj.github.io/wifi/) showing current visitors from a sensor set up in my apartment.
+
 ### Summary
 
 This project contains code used to monitor Wifi device activity with a Raspberry Pi.
 It also contains code to creat some endpoints for
-a web server to recieve the data from the Pi. Those endpoints
+a web server to receive the data from the Pi. Those endpoints
 are written in Python using Flask. This also requires some way to deploy the app
-using WSGI. The endpoints recieve the data from the sensor
+using WSGI. The endpoints receive the data from the sensor
 and insert it into a Cassandra database.
 
 You should be able to run the sensor code on any computer with a compatible network card
