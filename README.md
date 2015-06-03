@@ -16,11 +16,8 @@ and insert it into a Cassandra database.
 You should be able to run the sensor code on any computer with a compatible network card
 that can be switched into monitor mode.
 
-The current setup I am using consists of two DigitalOcean virtual machines
-both with 512MB RAM. One machine runs as the web server for the sensors
-to communicate with which then sends the data to a second machine running
-Cassandra. Cassandra isn't happy with the super low memory resources but it still
-mostly works.
+The current setup I am using consists of two DigitalOcean virtual machines. One machine runs as the web server for the sensors to communicate with which sends the data to a second machine running
+Cassandra.
 
 ### Project Structure
 
