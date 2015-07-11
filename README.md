@@ -1,9 +1,5 @@
 ## WiFi Device Activity
 
-### Live Display
-
-Check out a [Live Display](http://meyersj.github.io/wifi/) showing current visitors from a sensor set up in my apartment. You can set parameters such as time window for how recent of visitors to show, as well the average rate of pings allowing you to filter out noise.
-
 ### Summary
 
 This project contains code used to monitor Wifi device activity with a Raspberry Pi.
