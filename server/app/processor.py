@@ -11,7 +11,7 @@ from handlers import BeaconHandler, ProbeRequestHandler, ProbeResponseHandler
 
 
 def query_wrapper(func):
-    """ closure that connects to the cluster, excutes the input function
+    """ connects to the cluster, excutes the input function
         and disconnects from the cluster """
     def execute(*args, **kwargs):
         connection.setup(
