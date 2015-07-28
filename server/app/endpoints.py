@@ -1,15 +1,16 @@
 from flask import request, jsonify
 
 from app import app, debug, error
-from processor import Processor, Stream
+#from processor import Processor, Stream
 
-from query import Select
+#from query import Select
+
 
 @app.route('/', methods=['GET'])
 def index():
     return "root"
 
-
+"""
 @app.route('/', methods=['POST'])
 def data_stream():
     processor = Processor(data=request.data)
@@ -47,4 +48,4 @@ def visitor_history():
         data = select.visitor_history(**args)
         data["success"] = True
     return jsonify(data)
-
+"""

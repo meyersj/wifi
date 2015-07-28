@@ -1,4 +1,8 @@
+uwsgi
 flask
+sqlalchemy
+flask-sqlalchemy
 protobuf
-cassandra-driver
-blist
+psycopg2
+requests
+newrelic
