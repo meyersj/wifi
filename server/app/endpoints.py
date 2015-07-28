@@ -13,7 +13,6 @@ def index():
 @app.route('/data', methods=['POST'])
 def data_stream():
     processor = Processor(data=request.data)
-    print data
     return jsonify(response=True)
     #return processor.run()
 
