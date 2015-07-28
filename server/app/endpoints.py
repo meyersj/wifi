@@ -10,18 +10,19 @@ from app import app, debug, error
 def index():
     return "root"
 
-"""
-@app.route('/', methods=['POST'])
+@app.route('/data', methods=['POST'])
 def data_stream():
     processor = Processor(data=request.data)
-    return processor.run()
+    print data
+    return jsonify(response=True)
+    #return processor.run()
 
 
+"""
 @app.route('/stream', methods=['POST'])
 def stream():
     stream = Stream(data=request.data)
     return stream.run()
-
 
 @app.route('/visits', methods=['GET'])
 def visits():
