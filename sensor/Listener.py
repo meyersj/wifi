@@ -75,6 +75,7 @@ class Listener(object):
        
         self.handler = self.handler()
         for packet in capture.sniff_continuously():
+            self.handler.flush()
             if float(time.time()) > stop: break
             p = self.parser.parse(packet)
             if self.handler:

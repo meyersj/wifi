@@ -1,6 +1,6 @@
 import config
 from Listener import Listener
-from Handler import CSVHandler
+from Handler import PostHandler
 
 
 EXCLUDE  = [config.sensor_mac]
@@ -21,7 +21,7 @@ def main():
     
     display_filter = "({0}) && ({1})".format(subtype, exclude)
 
-    listener = Listener(display_filter=display_filter, handler=CSVHandler)
+    listener = Listener(display_filter=display_filter, handler=PostHandler)
     listener.start()
 
 
