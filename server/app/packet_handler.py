@@ -1,8 +1,9 @@
 import time
 from uuid import uuid4
 
-from app import app, debug, error
+from app import app, db, debug, error
 
+from models import Manuf, Stream
 
 class ProbeHandler(object):
     
@@ -14,12 +15,10 @@ class ProbeHandler(object):
     def construct(self, mac):
         params = {
             "location":self.location,
-            "stamp":self.data.stamp,
             "sensor":self.sensor,
-            "mac":mac,
             "arrival":self.data.arrival,
-            "subtype":self.data.subtype,
-            "source":self.data.source
+            "mac":mac,
+            "subtype":self.data.subtype
         }
         if self.data.HasField("seq"): params["seq"] = self.data.seq
         if self.data.HasField("signal"): params["signal"] = self.data.signal
@@ -27,9 +26,9 @@ class ProbeHandler(object):
 
     
     def insert(self, params):
-        # write to database
-        #print params
-        pass
+        record = Stream(**params)
+        db.session.add(record)
+        db.session.commit()
     
     def process(self):
         pass
