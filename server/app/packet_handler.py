@@ -1,6 +1,3 @@
-import time
-from uuid import uuid4
-
 from app import app, db, debug, error
 
 from models import Manuf, Stream
