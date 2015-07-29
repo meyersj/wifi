@@ -7,8 +7,6 @@ import config
 
 # to create a new handler class you
 # must implement handle(packet) and flush()
-
-
 class Handler(object):
     
     def handle(self, packet):
@@ -21,15 +19,21 @@ class Handler(object):
 class PostHandler(Handler):
 
     def __init__(self):
-        self.start = float(time.time())
+        self.start = self.unique = float(time.time())
         self.data = []
+        self.keys = set()
 
     def handle(self, packet):
         print packet.arrival, packet.source
-        self.data.append(packet)
+        if packet.source not in self.keys:
+            self.keys.add(packet.source)
+            self.data.append(packet)
 
     def flush(self):
         now = float(time.time())
+        if self.unique + config.unique < now:
+            self.keys = set()
+            self.unique = now
         if self.start + config.interval < now:
             self.send()
             self.start = now
