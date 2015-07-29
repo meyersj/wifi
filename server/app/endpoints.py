@@ -1,7 +1,7 @@
 from flask import request, jsonify
 
-from app import app, debug, error
-from request_processor import Processor
+from app import app
+#from request_processor import Processor
 
 
 
@@ -9,10 +9,10 @@ from request_processor import Processor
 def index():
     return "root"
 
-@app.route('/data', methods=['POST'])
-def data_stream():
-    processor = Processor(data=request.data)
-    response = processor.run()
-    return response
+#@app.route('/data', methods=['POST'])
+#def data_stream():
+#    processor = Processor(data=request.data)
+#    response = processor.run()
+#    return response
 
 
