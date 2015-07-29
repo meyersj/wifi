@@ -11,5 +11,5 @@ CREATE TABLE stream (
     signal integer
 );
 
-
+CREATE INDEX ON stream (arrival);
 
