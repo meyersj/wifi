@@ -1,4 +1,3 @@
-
 CREATE TABLE stream (
     data_id serial PRIMARY KEY,
     location varchar,

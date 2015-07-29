@@ -10,10 +10,11 @@ app.debug = True
 debug = app.logger.debug
 error = app.logger.error
 
-from app import endpoints
+from app.mod_app.views import mod_app as app_module
 from app.mod_sensor_api.endpoints import mod_sensor_api as sensor_api_module
 from app.mod_web_api.endpoints import mod_web_api as web_api_module
 
+app.register_blueprint(app_module)
 app.register_blueprint(sensor_api_module)
 app.register_blueprint(web_api_module)
 
