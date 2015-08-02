@@ -6,3 +6,4 @@ protobuf
 psycopg2
 requests
 newrelic
+webargs
