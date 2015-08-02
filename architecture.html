@@ -53,13 +53,10 @@
                 <li>if packet is a <strong>probe response</strong> then
                 <var>mac</var> = destination address</li>
               </ul>
-            <li>Insert record into the <var>Recent</var> table in Cassandra table</li>
-            <li>The data is partitioned by location and timeuuid</li>
+            <li>Insert record into the Postgres database</li>
             </ol>
-            <h4>Querying<h5>
-            TODO
-            <h3>Database <small>Cassandra</small></h3>
-            The packets are being stored in a single node Cassandra cluster
+            <h3>Database <small>PostgreSQL</small></h3>
+            The packets are being stored in a postgres database
             running on a DigitalOcean droplet.
         </div>
       </div>
