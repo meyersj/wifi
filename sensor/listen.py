@@ -1,5 +1,3 @@
-#!env/bin/python
-
 import config
 from Listener import Listener
 from Handler import PostHandler
