@@ -15,19 +15,15 @@ that can be switched into monitor mode.
 
 ### Project Structure
 
-#### db
- - **create.cql** contains Postgres schema definitions
- - **manuf.csv** manufacture lookup table based on mac prefix which must be loaded into the **manuf** table
-
 #### proto
 Contains protocol buffer definitions used for serialization of data
 sent between the Pi and web server.
- - **build.sh** Execute this to rebuild **packets_pb2.py** after making changes to **packets.proto**
+ - **build.sh** Execute this to rebuild **packets_pb2.py** if you make changes to **packets.proto**
 
 #### sensor
 This folder contains all the client code that is running on the sensor.
-There is a README in this folder than goes over some commands that are
-required to install the dependencies and setup permissions.
+There is a README in this folder that covers installing dependencies
+and setting up permissions.
 
 - **setup.sh** Run this script to set up the environment. This sets up a python
 virtual environment so that must already be available on your system. It will
@@ -46,15 +42,19 @@ wifi/sensor/env/bin/python listen.py    # run listening script (listens for abou
 ```
 
 #### server
-This folder contains a Python web app built using Flask. The app consists of a single
-endpoint used for the sensors to send pings to. Each ping is then classified
-based on the packet subtype.
-
-###### subtypes
- - 0x04 Probe Request - devices send probe requests to locate access points
- - 0x05 Probe Response - response from access points to devices that send Probe Requests
- - 0x08 Broadcast - broadcast sent by access point to let devices know it exists
+This folder contains a Python web app built using Flask. The app is split into
+two seperate modules, `mod_sensor_api` and `mod_web_api`. `mod_sensor_api` consists
+of a single endpoint used for the pi to upload data. `mod_web_api`
+consists of some endpoints for querying the data for use in a web app.
 
 The data recieved from the Pi is stored in table **stream**.
 
+###### sql
+This directory contains schema definitions for the Postgres database, along with a table to
+lookup network manufacture based on mac prefix
+
+```shell
+psql -f sql/manuf.sql -d wifi
+psql -f sql/create.sql -d wifi
+```
 
