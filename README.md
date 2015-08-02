@@ -2,39 +2,33 @@
 
 ### Summary
 
-This project contains code used to monitor Wifi device activity with a Raspberry Pi.
-It also contains code to creat some endpoints for
+This project contains code used to monitor Wifi activity with a Raspberry Pi.
+It also contains code to create some endpoints for
 a web server to receive the data from the Pi. Those endpoints
 are written in Python using Flask. This also requires some way to deploy the app
 using WSGI. The endpoints receive the data from the sensor
-and insert it into a Cassandra database.
+and insert it into a Postgres database.
 
 You should be able to run the sensor code on any computer with a compatible network card
 that can be switched into monitor mode.
 
-The current setup I am using consists of two DigitalOcean virtual machines. One machine runs as the web server for the sensors to communicate with which sends the data to a second machine running
-Cassandra.
 
 ### Project Structure
-
-#### db
- - **create.cql** contains Cassandra database creation script
- - **manuf.csv** manufacture lookup table based on mac prefix which must be loaded into the **manuf** table
 
 #### proto
 Contains protocol buffer definitions used for serialization of data
 sent between the Pi and web server.
- - **build.sh** Execute this to rebuild **packets_pb2.py** after making changes to **packets.proto**
+ - **build.sh** Execute this to rebuild **packets_pb2.py** if you make changes to **packets.proto**
 
 #### sensor
 This folder contains all the client code that is running on the sensor.
-There is a README in this folder than goes over some commands that are
-required to install the dependencies and setup permissions.
+There is a README in this folder that covers installing dependencies
+and setting up permissions.
 
 - **setup.sh** Run this script to set up the environment. This sets up a python
 virtual environment so that must already be available on your system. It will
 install the necessary python packages for you. It will also make copy
-sample-config.py into config.py. This file must be filled out correctly
+sample-config.py into config.py. This file must be modified
 for your environment before running.
 
 - **listen.py** Once all the dependencies have been met you can run this script. It will
@@ -48,21 +42,19 @@ wifi/sensor/env/bin/python listen.py    # run listening script (listens for abou
 ```
 
 #### server
-This folder contains a Python web app built using Flask. The app consists of a single
-endpoint used for the sensors to send pings to. Each ping is then classified
-based on the packet subtype.
+This folder contains a Python web app built using Flask. The app is split into
+two seperate modules, `mod_sensor_api` and `mod_web_api`. `mod_sensor_api` consists
+of a single endpoint used for the pi to upload data. `mod_web_api`
+consists of some endpoints for querying the data for use in a web app.
 
-###### subtypes
- - 0x04 Probe Request - devices send probe requests to locate access points
- - 0x05 Probe Response - response from access points to devices that send Probe Requests
- - 0x08 Broadcast - broadcast sent by access point to let devices know it exists
+The data recieved from the Pi is stored in table **stream**.
 
-Depending on the packet type different actions are taken. There is a beacon table that
-maintains a list of all access points identified in each location. The data stream from sensors
-is stored in **recent**. The table is partitioned using *location* and
-clustered with a timestamp.
+###### sql
+This directory contains schema definitions for the Postgres database, along with a table to
+lookup network manufacture based on mac prefix
 
-The **visit** table keeps a log of *first_arrival* and *recent_arrival* for each device visits.
-If a new packet is much more recent than the previous packets and new visit record is created.
-
+```shell
+psql -f sql/manuf.sql -d wifi
+psql -f sql/create.sql -d wifi
+```
 
