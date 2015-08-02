@@ -19,18 +19,24 @@
         stroke: #fff;
         stroke-width: 2px;
       }
+      
+      .node:hover circle {
+        stroke: #7289D3;
+      }
+      
       .node text {
         opacity: 0;
         cursor: default;
         text-anchor: middle;
+        font-size: 13px;
       }
       .node:hover text {
         opacity: 1;
       }
+
     </style>
-
-
   </head>
+  
   <body>
     <div class="container-fluid">
       <div class="row">
@@ -47,21 +53,26 @@
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    
     <script>
-
 var w, h, svg, scale;
 var base_url = "http://wifi.meyersj.com/api";
-
 
 $(document).ready(function() {
     w = $("#visual").outerWidth();
     h = 500;
     svg = create_canvas("#visual", w, h);
     scale = build_scales();
-    //var args = {mac:'18:0c:ac:ac:5f:85'};    
-    var args = {unique:true};
-    initialize(args);
+    initialize({unique:true});
 });
+
+function create_canvas(div, width, height) {
+    if(svg) svg.remove();
+    return d3.select(div)
+        .append("svg")
+        .attr("height", height)
+        .attr("width", width);
+}
 
 function initialize(args) {
     $.getJSON(base_url + "/pings", args, function(data) {
@@ -72,8 +83,6 @@ function initialize(args) {
             .charge(-100);
         var node = build_nodes(force, data.data);
         force.on('tick', function() {
-            //node.attr('x', function(d) { return d.x; })
-            //    .attr('y', function(d) { return d.y; });
             node.attr("transform", function(d) {
                 return "translate(" + d.x + "," + d.y + ")"; 
             });
@@ -97,28 +106,35 @@ function build_nodes(force, nodes) {
     // timestamp rounded to nearest 5 minute interval
     // less than current timestamp
     var now = Math.floor(((new Date).getTime() / 1000) / 300) * 300;
+    
+    function node_clicked (d, i) {
+        if (d3.event.defaultPrevented) return; // click suppressed
+        $.getJSON(base_url + "/pings", {mac:node.mac}, function(data) {
+            console.log(data);
+        }); 
+    }
+    
     var node = svg.selectAll('.node')
         .data(nodes)
         .enter()
         .append("g")
         .attr("class", "node")
-        .call(force.drag);
+        .call(force.drag)
+        .on('click', node_clicked);
     
     node.append("circle")
-        .style('fill', function(d) {
+        .style('fill', function (d) {
             var age = (now - d.max_arrival) / 60;
-            //console.log(age);
             return scale.age(age);
         })
-        .attr('r', function(d) {
+        .attr('r', function (d) {
             var duration = (d.max_arrival - d.min_arrival) / 60;
-            console.log(duration);
             return scale.duration(duration);
         });
     
     node.append("text")
         .attr("dy", 5)
-        .text(function(d) {
+        .text(function (d) {
             if(!d.manuf) return "None";
             return d.manuf;
         });
@@ -126,13 +142,6 @@ function build_nodes(force, nodes) {
     return node;
 }
 
-function create_canvas(div, width, height) {
-    if(svg) svg.remove();
-    return d3.select(div)
-        .append("svg")
-        .attr("height", height)
-        .attr("width", width);
-}
 
     </script>
   </body>
