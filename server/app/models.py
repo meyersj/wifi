@@ -24,6 +24,11 @@ class Stream(db.Model):
     def __init__(self, **kwargs):
         for key, value in kwargs.iteritems():
             setattr(self, key, value)
+        prefix = kwargs["mac"][0:8].upper()
+        manuf = Manuf.query.filter_by(prefix=prefix.upper()).first()
+        if manuf:
+            self.manuf = manuf.shortm
+        
     
 
 
