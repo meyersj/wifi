@@ -15,9 +15,17 @@
     <![endif]-->
   
     <style>
-      .node {
+      .node circle {
         stroke: #fff;
         stroke-width: 2px;
+      }
+      .node text {
+        opacity: 0;
+        cursor: default;
+        text-anchor: middle;
+      }
+      .node:hover text {
+        opacity: 1;
       }
     </style>
 
@@ -64,8 +72,11 @@ function initialize(args) {
             .charge(-100);
         var node = build_nodes(force, data.data);
         force.on('tick', function() {
-            node.attr('cx', function(d) { return d.x; })
-                .attr('cy', function(d) { return d.y; });
+            //node.attr('x', function(d) { return d.x; })
+            //    .attr('y', function(d) { return d.y; });
+            node.attr("transform", function(d) {
+                return "translate(" + d.x + "," + d.y + ")"; 
+            });
         });
         force.start();
     });
@@ -86,19 +97,33 @@ function build_nodes(force, nodes) {
     // timestamp rounded to nearest 5 minute interval
     // less than current timestamp
     var now = Math.floor(((new Date).getTime() / 1000) / 300) * 300;
-    return svg.selectAll('.node')
+    var node = svg.selectAll('.node')
         .data(nodes)
-        .enter().append('circle')
-        .attr('class', 'node')
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .call(force.drag);
+    
+    node.append("circle")
         .style('fill', function(d) {
             var age = (now - d.max_arrival) / 60;
+            //console.log(age);
             return scale.age(age);
         })
         .attr('r', function(d) {
             var duration = (d.max_arrival - d.min_arrival) / 60;
+            console.log(duration);
             return scale.duration(duration);
-        })
-        .call(force.drag);
+        });
+    
+    node.append("text")
+        .attr("dy", 5)
+        .text(function(d) {
+            if(!d.manuf) return "None";
+            return d.manuf;
+        });
+    
+    return node;
 }
 
 function create_canvas(div, width, height) {
