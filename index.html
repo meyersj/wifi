@@ -109,7 +109,7 @@ function build_nodes(force, nodes) {
     
     function node_clicked (d, i) {
         if (d3.event.defaultPrevented) return; // click suppressed
-        $.getJSON(base_url + "/pings", {mac:node.mac}, function(data) {
+        $.getJSON(base_url + "/pings", {mac:d.mac}, function(data) {
             console.log(data);
         }); 
     }
