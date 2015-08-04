@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <title>WiFi-Location Analytics</title>
-    <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
-      rel="stylesheet">
+    <link
+        href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
+        rel="stylesheet">
+    
     <!-- IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -53,10 +55,11 @@
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-    
     <script>
 var w, h, svg, scale;
 var base_url = "http://wifi.meyersj.com/api";
+var device_data = {};
+
 
 $(document).ready(function() {
     w = $("#visual").outerWidth();
@@ -78,7 +81,7 @@ function initialize(args) {
     $.getJSON(base_url + "/pings", args, function(data) {
         console.log(data);
         var force = d3.layout.force()
-            .size([w, h])
+            .size([w - w/5, h])
             .nodes(data.data)
             .charge(-100);
         var node = build_nodes(force, data.data);
@@ -102,16 +105,75 @@ function build_scales() {
     };
 }
 
-function build_nodes(force, nodes) { 
+// 0 == 45 to 60 minutes ago
+// 1 == 30 to 45 ...
+// 2 == 15 to 30 ...
+// 3 == 0  to 15 ...
+function bin_ping(min, value, inc) {
+    if (value < min + inc) return 0;
+    if (value < min + inc * 2) return 1;
+    if (value < min + inc * 3) return 2;
+    return 3;
+}
+
+function show_details(data) {
+    console.log(data);
+    var buckets = [0, 1, 2, 3].map(function(val) {
+        return {time:data.min_arrival + val * 60 * 15, count:0};
+    });
+    $(data.data).each(function(index, item) {
+        buckets[bin_index(data.min_arrival, item.arrival, 60 * 15)].count++;
+    });
+}
+
+function build_nodes (force, nodes) { 
     // timestamp rounded to nearest 5 minute interval
     // less than current timestamp
     var now = Math.floor(((new Date).getTime() / 1000) / 300) * 300;
+
+    function node_mouseover(d, i) {
+        d3.select(this)
+            .select("circle")
+            .transition()
+            .duration(200)
+            .style("fill", "#82C910")
+            .attr('r', function (d) {
+                var duration = (d.max_arrival - d.min_arrival) / 60;
+                return scale.duration(duration) * 1.5;
+            })
+    }
+
+    function node_mouseout(d, i) {
+        d3.select(this)
+            .select("circle")
+            .transition()
+            .duration(500)
+            .style('fill', function (d) {
+                var age = (now - d.max_arrival) / 60;
+                return scale.age(age);
+            })
+            .attr('r', function (d) {
+                var duration = (d.max_arrival - d.min_arrival) / 60;
+                return scale.duration(duration);
+            });
+    }
     
-    function node_clicked (d, i) {
-        if (d3.event.defaultPrevented) return; // click suppressed
-        $.getJSON(base_url + "/pings", {mac:d.mac}, function(data) {
-            console.log(data);
+    function download_history(mac, callback) {
+        $.getJSON(base_url + "/pings", {mac:mac}, function(data) {
+            device_data[mac] = data;
+            callback(data);
         }); 
+    }
+    
+    function node_click (d, i) {
+        if (d3.event.defaultPrevented) return; // click suppressed
+        var THIS = this;
+        if (!device_data.hasOwnProperty(d.mac)) {
+            download_history(d.mac, show_details);
+        }
+        else {
+            show_details(device_data[d.mac]);
+        }
     }
     
     var node = svg.selectAll('.node')
@@ -120,8 +182,10 @@ function build_nodes(force, nodes) {
         .append("g")
         .attr("class", "node")
         .call(force.drag)
-        .on('click', node_clicked);
-    
+        .on('click', node_click)
+        .on('mouseover', node_mouseover)
+        .on('mouseout', node_mouseout);
+     
     node.append("circle")
         .style('fill', function (d) {
             var age = (now - d.max_arrival) / 60;
@@ -141,6 +205,7 @@ function build_nodes(force, nodes) {
     
     return node;
 }
+
 
 
     </script>
