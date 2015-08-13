@@ -289,12 +289,12 @@ function build_nodes (force, nodes) {
      
     node.append("circle")
         .style('fill', function (d) {
-            if (d.fixed) return "red";
+            if (d.fixed) return "#828296";
             var age = (now - d.max_arrival) / 60;
             return scale.age(age);
         })
         .attr('r', function (d) {
-            if (d.fixed) return 20;
+            if (d.fixed) return 10;
             var duration = (d.max_arrival - d.min_arrival) / 60;
             return scale.duration(duration);
         });
