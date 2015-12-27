@@ -1,11 +1,7 @@
-scala
 *.*~
 *.*.swp
-*.pyc
 server/env/*
-sensor/lib/Kimi*eb4f2b9/*
 sensor/env/*
-config.py
 
 server.ini
 newrelic.ini
