@@ -2,11 +2,9 @@ import os, sys, time
 from uuid import uuid1
 from datetime import datetime
 
-import pyshark, requests
+import pyshark
 
-from proto.packets_pb2 import Packet, Payload
-
-requests.packages.urllib3.disable_warnings()
+from proto.packets_pb2 import Packet
 
 
 def cast(value, new_type):
@@ -71,25 +69,22 @@ class Listener(object):
     takes as input the protobuf Packet object.
     """
    
-    def __init__(self, interface=None, display_filter="", bpf_filter="", Handler=None):
-        self.interface = interface
+    def __init__(self, config=None, display_filter="", bpf_filter="", Handler=None):
+        self.config = config
         self.display_filter = display_filter
         self.bpf_filter = bpf_filter
         self.processor = PacketProcessor()
         if Handler: self.handler = Handler()
         else: self.handler = None
     
-    def start(self, timeout=60):
-        now = float(time.time()) 
-        stop = now + timeout
-
+    def start(self):
         capture = pyshark.LiveCapture(
-            interface=self.interface,
+            interface=self.config.interface,
             display_filter=self.display_filter,
             bpf_filter=self.bpf_filter
         )
-        
+       
+        # continue sniffing forever
         for packet in capture.sniff_continuously():
-            if float(time.time()) > stop: break
             proto_packet = self.processor.process(packet)
             if self.handler: self.handler.handle(proto_packet)

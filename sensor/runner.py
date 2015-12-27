@@ -38,9 +38,9 @@ def main():
     exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
     
-    # build listener object with an associated handler 
+    # create listener object with an associated handler 
     listener = Listener(
-        interface=config.interface,
+        config=config,
         display_filter=display_filter,
         Handler=Handler
     )
