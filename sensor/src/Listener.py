@@ -1,4 +1,4 @@
-import os, sys, time, threading
+import os, sys, time  #, threading
 from uuid import uuid1
 from datetime import datetime
 
@@ -14,14 +14,14 @@ def cast(value, new_type):
     return value
 
 
-"""
-PacketProcessor will process packets received from pyshark.
-
-The process method will take as input a pyshark packet object
-and return a protobuf Packet object.
-"""
 class PacketProcessor(object):
-    
+    """
+    PacketProcessor will process packets received from pyshark.
+
+    The process method will take as input a pyshark packet object
+    and return a protobuf Packet object.
+    """
+   
     def process(self, packet):
         out = Packet()  
         out.subtype = packet.wlan.get_field_value("fc_type_subtype")
@@ -59,10 +59,19 @@ class PacketProcessor(object):
         signal = cast(packet.radiotap.get_field_value("dbm_antsignal"), int)
         return arrival, seq, freq, signal
 
-
 class Listener(object):
-    
-    def __init__(self, interface, display_filter="", bpf_filter="", Handler=None):
+    """
+    The Listener will start sniffing for packets using the pyshark library.
+
+    Each received packet will be processed by the PacketProcessor object which
+    will extract relavent data fields and build a Packet protobuf object.
+
+    If a handler was attached to the Listener the packet will be passed to
+    that object. The handler object must implement a handle method which
+    takes as input the protobuf Packet object.
+    """
+   
+    def __init__(self, interface=None, display_filter="", bpf_filter="", Handler=None):
         self.interface = interface
         self.display_filter = display_filter
         self.bpf_filter = bpf_filter
@@ -81,11 +90,6 @@ class Listener(object):
         )
         
         for packet in capture.sniff_continuously():
-        #self.handler.flush()
-        #    if float(time.time()) > stop: break
+            if float(time.time()) > stop: break
             proto_packet = self.processor.process(packet)
-            #if self.handler:
-            #    self.handler.handle(proto_packet)
-            #else:
-            print proto_packet
-            #print p.subtype, p.arrival, p.stamp
+            if self.handler: self.handler.handle(proto_packet)

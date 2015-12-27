@@ -10,11 +10,11 @@ except:
     sys.exit(1)
 
 from src.Listener import Listener
-from src.Handler import PostHandler
+from src.Handler import Handler
 from src.Constants import Frames
 
 
-EXCLUDE  = [config.sensor_mac]
+EXCLUDE_MACS  = [config.sensor_mac]
 INCLUDE_FRAME_TYPES   = [
     Frames.ASSOCIATION_REQUEST,
     Frames.ASSOCIATION_RESPONSE,
@@ -30,15 +30,22 @@ def construct_filter_expr(expr, joiner, iterable):
 
 
 def main():
+    # build filter for which packet frame types to pass through
+    # and filter to ignore frames from sensor
     subtype_expr = "wlan.fc.type_subtype == {0}"
     exclude_expr = "wlan.addr != {0}"
     subtype = construct_filter_expr(subtype_expr, " || ", INCLUDE_FRAME_TYPES)
-    exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE)
+    exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
+    
+    # build listener object with an associated handler 
     listener = Listener(
-        config.interface,
-        display_filter=display_filter#, handler=PostHandler
+        interface=config.interface,
+        display_filter=display_filter,
+        Handler=Handler
     )
+
+    # start sniffing for packets
     listener.start()
 
 
