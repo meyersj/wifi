@@ -1,4 +1,4 @@
-import os, sys, time  #, threading
+import os, sys, time
 from uuid import uuid1
 from datetime import datetime
 
