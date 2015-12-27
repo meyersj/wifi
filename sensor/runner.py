@@ -4,6 +4,11 @@ import sys
 
 try:
     import conf.config as config
+    if confg.sensor_mac == "XX:XX:XX:XX:XX:XX":
+        print "Failed to set config variable `sensor_mac`"
+        print "Run `ifconfig` to find mac address of wifi chip"
+        print "Set `sensor_mac` in `conf/config.py`"
+        sys.exit(2)
 except:
     print "Failed to import `conf/config.py`"
     print "Copy `conf/sample-config.py` to `conf/config.py` and set to correct values"
