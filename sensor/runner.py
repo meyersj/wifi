@@ -1,18 +1,27 @@
 #!env/bin/python
 
+
 import sys
 
 try:
     import conf.config as config
-    if confg.sensor_mac == "XX:XX:XX:XX:XX:XX":
+    if config.sensor_mac == "XX:XX:XX:XX:XX:XX":
+        print
         print "Failed to set config variable `sensor_mac`"
-        print "Run `ifconfig` to find mac address of wifi chip"
-        print "Set `sensor_mac` in `conf/config.py`"
+        print " - run `ifconfig` to find mac address of wifi chip"
+        print " - set `sensor_mac` in `conf/config.py`"
+        print
         sys.exit(2)
-except:
+except Exception as e:
+    print
+    print e
+    print
     print "Failed to import `conf/config.py`"
-    print "Copy `conf/sample-config.py` to `conf/config.py` and set to correct values"
+    print " - copy `conf/sample-config.py` to `conf/config.py`"
+    print " - set config variables to correct values"
+    print
     sys.exit(1)
+
 
 from src.Listener import Listener
 from src.Handler import Handler
@@ -35,6 +44,7 @@ def construct_filter_expr(expr, joiner, iterable):
 
 
 def main():
+    
     # build filter for which packet frame types to pass through
     # and filter to ignore frames from sensor
     subtype_expr = "wlan.fc.type_subtype == {0}"
@@ -56,3 +66,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
