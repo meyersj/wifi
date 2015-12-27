@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='packets.proto',
   package='packets',
-  serialized_pb='\n\rpackets.proto\x12\x07packets\"\xbe\x01\n\x06Packet\x12\r\n\x05stamp\x18\x01 \x01(\t\x12\x0f\n\x07\x61rrival\x18\x02 \x01(\x01\x12\x0b\n\x03seq\x18\x03 \x01(\x05\x12\x0f\n\x07subtype\x18\x04 \x01(\t\x12\x0c\n\x04ssid\x18\x05 \x01(\t\x12\x0e\n\x06source\x18\x06 \x01(\t\x12\x13\n\x0btransmitter\x18\x07 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x08 \x01(\t\x12\x10\n\x08receiver\x18\t \x01(\t\x12\x0c\n\x04\x66req\x18\n \x01(\x05\x12\x0e\n\x06signal\x18\x0b \x01(\x05\"J\n\x07Payload\x12\x10\n\x08location\x18\x01 \x01(\t\x12\x0e\n\x06sensor\x18\x02 \x01(\t\x12\x1d\n\x04\x64\x61ta\x18\x03 \x03(\x0b\x32\x0f.packets.Packet')
+  serialized_pb='\n\rpackets.proto\x12\x07packets\"\xbd\x01\n\x06Packet\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x0f\n\x07\x61rrival\x18\x02 \x01(\x01\x12\x0b\n\x03seq\x18\x03 \x01(\x05\x12\x0f\n\x07subtype\x18\x04 \x01(\t\x12\x0c\n\x04ssid\x18\x05 \x01(\t\x12\x0e\n\x06source\x18\x06 \x01(\t\x12\x13\n\x0btransmitter\x18\x07 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x08 \x01(\t\x12\x10\n\x08receiver\x18\t \x01(\t\x12\x0c\n\x04\x66req\x18\n \x01(\x05\x12\x0e\n\x06signal\x18\x0b \x01(\x05\"J\n\x07Payload\x12\x10\n\x08location\x18\x01 \x01(\t\x12\x0e\n\x06sensor\x18\x02 \x01(\t\x12\x1d\n\x04\x64\x61ta\x18\x03 \x03(\x0b\x32\x0f.packets.Packet')
 
 
 
@@ -24,7 +24,7 @@ _PACKET = descriptor.Descriptor(
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
-      name='stamp', full_name='packets.Packet.stamp', index=0,
+      name='uuid', full_name='packets.Packet.uuid', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
@@ -110,7 +110,7 @@ _PACKET = descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=27,
-  serialized_end=217,
+  serialized_end=216,
 )
 
 
@@ -151,8 +151,8 @@ _PAYLOAD = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=219,
-  serialized_end=293,
+  serialized_start=218,
+  serialized_end=292,
 )
 
 _PAYLOAD.fields_by_name['data'].message_type = _PACKET

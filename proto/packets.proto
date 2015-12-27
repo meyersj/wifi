@@ -2,7 +2,7 @@ syntax = "proto2";
 package packets;
 
 message Packet {
-    optional string stamp       = 1;
+    optional string uuid        = 1;
     optional double arrival     = 2;
     optional int32 seq          = 3;
     optional string subtype     = 4;
@@ -20,5 +20,3 @@ message Payload {
     optional string sensor      = 2;
     repeated Packet data        = 3;
 }
-
-
