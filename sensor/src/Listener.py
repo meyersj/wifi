@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pyshark
 
-from proto.packets_pb2 import Packet
+from wifi_pb2 import Packet
 
 
 def cast(value, new_type):
@@ -28,34 +28,28 @@ class PacketProcessor(object):
         return out
     
     def fetch_address_data(self, p, packet):
-        sa, ta, da, ra = self.parse_addr(packet)
-        if sa: p.source = sa
-        if ta: p.transmitter = ta
-        if da: p.destination = da
-        if ra: p.receiver = ra
+        source, destination = self.parse_addr(packet)
+        if source: p.source = source
+        if destination: p.destination = destination
     
     def fetch_meta_data(self, p, packet):
-        arrival, seq, freq, signal = self.parse_meta(packet)
+        arrival, freq, signal = self.parse_meta(packet)
         p.uuid = str(uuid1())
         p.arrival = arrival
-        if seq: p.seq = seq
         if freq: p.freq = freq
         if signal: p.signal = signal
         if p.subtype == "0x08": p.ssid = packet.wlan_mgt.get_field_value("ssid")
    
     def parse_addr(self, packet):
-        sa = packet.wlan.get_field_value("sa")
-        ta = packet.wlan.get_field_value("ta")
-        da = packet.wlan.get_field_value("da")
-        ra = packet.wlan.get_field_value("ra")
-        return sa, ta, da, ra
+        source = packet.wlan.get_field_value("sa")
+        destination = packet.wlan.get_field_value("da")
+        return source, destination
    
     def parse_meta(self, packet):
         arrival = float(packet.frame_info.get_field_value("time_epoch"))
-        seq = cast(packet.wlan.get_field_value("seq"), int)
         freq = cast(packet.radiotap.get_field_value("channel_freq"), int)
         signal = cast(packet.radiotap.get_field_value("dbm_antsignal"), int)
-        return arrival, seq, freq, signal
+        return arrival, freq, signal
 
 class Listener(object):
     """
@@ -69,12 +63,12 @@ class Listener(object):
     takes as input the protobuf Packet object.
     """
    
-    def __init__(self, config=None, display_filter="", bpf_filter="", Handler=None):
+    def __init__(self, config=None, display_filter="", bpf_filter="", handler=None):
         self.config = config
         self.display_filter = display_filter
         self.bpf_filter = bpf_filter
         self.processor = PacketProcessor()
-        if Handler: self.handler = Handler()
+        if handler: self.handler = handler(config)
         else: self.handler = None
     
     def start(self):
