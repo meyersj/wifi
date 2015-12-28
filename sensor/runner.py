@@ -24,7 +24,8 @@ except Exception as e:
 
 
 from src.Listener import Listener
-from src.Handler import Handler
+#from src.Handler import Handler
+from src.PostHandler import Handler
 from src.Constants import Frames
 
 
@@ -44,9 +45,8 @@ def construct_filter_expr(expr, joiner, iterable):
 
 
 def main():
-    
-    # build filter for which packet frame types to pass through
-    # and filter to ignore frames from sensor
+    # build filter for packet frame types to pass through
+    # and a filter to ignore frames from sensor
     subtype_expr = "wlan.fc.type_subtype == {0}"
     exclude_expr = "wlan.addr != {0}"
     subtype = construct_filter_expr(subtype_expr, " || ", INCLUDE_FRAME_TYPES)
@@ -57,7 +57,7 @@ def main():
     listener = Listener(
         config=config,
         display_filter=display_filter,
-        Handler=Handler
+        handler=Handler
     )
 
     # start sniffing for packets
