@@ -34,7 +34,6 @@ class PacketProcessor(object):
     
     def fetch_meta_data(self, p, packet):
         arrival, freq, signal = self.parse_meta(packet)
-        p.uuid = str(uuid1())
         p.arrival = arrival
         if freq: p.freq = freq
         if signal: p.signal = signal

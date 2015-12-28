@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='wifi.proto',
   package='wifiproto',
-  serialized_pb=_b('\n\nwifi.proto\x12\twifiproto\"\x89\x01\n\x06Packet\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x0f\n\x07\x61rrival\x18\x02 \x01(\x01\x12\x0f\n\x07subtype\x18\x03 \x01(\t\x12\x0c\n\x04ssid\x18\x04 \x01(\t\x12\x0e\n\x06source\x18\x05 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x06 \x01(\t\x12\x0c\n\x04\x66req\x18\x07 \x01(\x05\x12\x0e\n\x06signal\x18\x08 \x01(\x05\"L\n\x07Payload\x12\x10\n\x08location\x18\x01 \x01(\t\x12\x0e\n\x06sensor\x18\x02 \x01(\t\x12\x1f\n\x04\x64\x61ta\x18\x03 \x03(\x0b\x32\x11.wifiproto.Packet')
+  serialized_pb=_b('\n\nwifi.proto\x12\twifiproto\"{\n\x06Packet\x12\x0f\n\x07\x61rrival\x18\x01 \x01(\x01\x12\x0f\n\x07subtype\x18\x02 \x01(\t\x12\x0c\n\x04ssid\x18\x03 \x01(\t\x12\x0e\n\x06source\x18\x04 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x05 \x01(\t\x12\x0c\n\x04\x66req\x18\x06 \x01(\x05\x12\x0e\n\x06signal\x18\x07 \x01(\x05\"L\n\x07Payload\x12\x10\n\x08location\x18\x01 \x01(\t\x12\x0e\n\x06sensor\x18\x02 \x01(\t\x12\x1f\n\x04\x64\x61ta\x18\x03 \x03(\x0b\x32\x11.wifiproto.Packet')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -33,57 +33,50 @@ _PACKET = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='uuid', full_name='wifiproto.Packet.uuid', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='arrival', full_name='wifiproto.Packet.arrival', index=1,
-      number=2, type=1, cpp_type=5, label=1,
+      name='arrival', full_name='wifiproto.Packet.arrival', index=0,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='subtype', full_name='wifiproto.Packet.subtype', index=2,
+      name='subtype', full_name='wifiproto.Packet.subtype', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ssid', full_name='wifiproto.Packet.ssid', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ssid', full_name='wifiproto.Packet.ssid', index=3,
+      name='source', full_name='wifiproto.Packet.source', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='source', full_name='wifiproto.Packet.source', index=4,
+      name='destination', full_name='wifiproto.Packet.destination', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='destination', full_name='wifiproto.Packet.destination', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='freq', full_name='wifiproto.Packet.freq', index=6,
-      number=7, type=5, cpp_type=1, label=1,
+      name='freq', full_name='wifiproto.Packet.freq', index=5,
+      number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='signal', full_name='wifiproto.Packet.signal', index=7,
-      number=8, type=5, cpp_type=1, label=1,
+      name='signal', full_name='wifiproto.Packet.signal', index=6,
+      number=7, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -99,8 +92,8 @@ _PACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=26,
-  serialized_end=163,
+  serialized_start=25,
+  serialized_end=148,
 )
 
 
@@ -143,8 +136,8 @@ _PAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=165,
-  serialized_end=241,
+  serialized_start=150,
+  serialized_end=226,
 )
 
 _PAYLOAD.fields_by_name['data'].message_type = _PACKET

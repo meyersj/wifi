@@ -15,8 +15,7 @@ import (
 
 func BuildPostPayload() *bytes.Buffer {
 	packet := &wifiproto.Packet{
-		Uuid:        proto.String("0"),
-		Arrival:     proto.Float64(10000.0),
+		Arrival:     proto.Float64(1451328466.85),
 		Subtype:     proto.String("0x04"),
 		Source:      proto.String("00:00:00:00:00:00"),
 		Destination: proto.String("FF:FF:FF:FF:FF:FF"),

@@ -3,14 +3,13 @@ syntax = "proto2";
 package wifiproto;
 
 message Packet {
-    optional string uuid        = 1;
-    optional double arrival     = 2;
-    optional string subtype     = 3;
-    optional string ssid        = 4;
-    optional string source      = 5;
-    optional string destination = 6;
-    optional int32  freq        = 7;
-    optional int32  signal      = 8;
+    optional double arrival     = 1;
+    optional string subtype     = 2;
+    optional string ssid        = 3;
+    optional string source      = 4;
+    optional string destination = 5;
+    optional int32  freq        = 6;
+    optional int32  signal      = 7;
 }
 
 message Payload {
