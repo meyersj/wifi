@@ -26,12 +26,12 @@ func InitDBClient(uri string) *DBClient {
 }
 
 func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
-	insert := "INSERT INTO packets " +
+	stmt := "INSERT INTO packets " +
 		"(arrival, subtype, src, dest, freq, signal) " +
 		"VALUES " +
 		"($1, $2, $3, $4, $5, $6)"
 	_, err := c.DB.Exec(
-		insert,
+		stmt,
 		p.Arrival, p.Subtype, p.Source, p.Destination, p.Freq, p.Signal,
 	)
 	if err != nil {
@@ -39,28 +39,30 @@ func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
 	}
 }
 
-func (c *DBClient) QueryLast(n int) {
-	var (
-		arrival float64
-		subtype string
-		src     string
-		signal  int
-	)
+func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
+	var r *wifiproto.Packet
+	records := []*wifiproto.Packet{}
+
 	query := "SELECT arrival, subtype, src, signal " +
 		"FROM packets " +
-		"WHERE signal IS NOT NULL " +
-		"ORDER BY arrival DESC " +
-		"LIMIT $1"
-	rows, err := c.DB.Query(query, n)
+		"WHERE signal IS NOT NULL AND arrival > $1 " +
+		"ORDER BY src, arrival DESC"
+
+	rows, err := c.DB.Query(query, tstamp)
 	if err != nil {
-		log.Fatal("failed to select packets:", err)
+		log.Println("failed to query database\n", query)
+		log.Fatal(err)
 	}
+
 	defer rows.Close()
 	for rows.Next() {
-		err := rows.Scan(&arrival, &subtype, &src, &signal)
+		r = &wifiproto.Packet{}
+		err := rows.Scan(&r.Arrival, &r.Subtype, &r.Source, &r.Signal)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(arrival, subtype, src, signal)
+		records = append(records, r)
+
 	}
+	return records
 }

@@ -13,6 +13,8 @@ import (
 	"testing"
 )
 
+const PGCONN string = "postgres://jeff:password@localhost/wifi"
+
 func BuildPostPayload() *bytes.Buffer {
 	packet := &wifiproto.Packet{
 		Arrival:     proto.Float64(1451328466.85),
@@ -40,7 +42,7 @@ func TestIndexHandler(t *testing.T) {
 }
 
 func TestPostPacketHandler(t *testing.T) {
-	db := InitDBClient("postgres://jeff:password@localhost/wifi")
+	db := InitDBClient(PGCONN)
 	handler := PacketHandler{Db: db}
 	defer handler.Db.DB.Close()
 
@@ -65,12 +67,15 @@ func TestPostPacketHandler(t *testing.T) {
 	utils.Assert(t, res.Success == true, "error: "+res.Msg)
 }
 
-func TestQueryHandler(t *testing.T) {
-	db := InitDBClient("postgres://jeff:password@localhost/wifi")
+func TestQueryHandlerArgs(t *testing.T) {
+	db := InitDBClient(PGCONN)
 	handler := QueryHandler{Db: db}
 	defer handler.Db.DB.Close()
-
 	req, _ := http.NewRequest("GET", "/query", nil)
+
+	// set minute param to query recent records
+	req.ParseForm()
+	req.Form.Set("window", "5")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 
