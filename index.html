@@ -62,314 +62,112 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script>
-var w, h, svg, scale, active;
-//var base_url = "http://localhost:5000/api";
-var base_url = "http://wifi.meyersj.com/api";
-var device_data = {};
 
+var w, h, svg, scales;
+var window_size = 10;
+var endpoint = "http://localhost:5000/query?window=" + window_size;
 
 $(document).ready(function() {
-    w = $("#visual").outerWidth();
-    h = 500;
-    svg = create_canvas("#visual", w, h);
-    scale = build_scales();
-    initialize({unique:true});
+    function refresh() {
+        w = $("#visual").outerWidth();
+        h = window.innerHeight;
+        svg = initialize_canvas("#visual");
+        runner();
+    }
+  
+    // fetch new data and update visualization each interval
+    refresh();
+    setInterval(refresh, 5000);
 });
 
-function create_canvas(div, width, height) {
+function initialize_canvas(div) {
     if(svg) svg.remove();
     return d3.select(div)
         .append("svg")
-        .attr("height", height)
-        .attr("width", width);
+        .attr("height", h)
+        .attr("width", w);
 }
 
-function distance (signal) {
-    //distance = 10 ^ ((27.55 - (20 * log10(frequency)) + signalLevel)/20)
-    
-    
-    
-    return Math.pow(10, ((27.55 - (20 * Math.log10(2400)) + signal) / 20));
-}
-
-function initialize(args) {
-    //build_legend();
-    $.getJSON(base_url + "/pings", args, function(data) {
-        
-        var links = data.data.map(function(d, i) {
-            return {source:0, target:i+1, data:d};
-        })
-        
-        scale.signal.domain([
-            d3.min(data.data, function(d) { return d.avg_signal; }),
-            d3.max(data.data, function(d) { return d.avg_signal; })
-        ]);
-        
-        data.data.unshift({x:w/2, y:h/2, fixed:true});
-        
-        var force = d3.layout.force()
-            .size([w - w/5, h])
-            .nodes(data.data)
-            .links(links)
-            .linkDistance(function(d) {
-                //return scale.signal(d.data.avg_signal);
-                return Math.pow(Math.abs(d.data.avg_signal), 1.3) * .60;
-            })
-            .gravity(0)
-            .charge(function(d) {
-                //console.log(d.avg_signal);
-                //return d.avg_signal - 50;
-                return -80;
-            });
-        
-        var node = build_nodes(force, data.data);
-        force.on('tick', function() {
-            node.attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")"; 
-            });
-        });
-        force.start();
-    
-        //console.log(data.data);
-        
-    });
-}
-
-function build_scales() {
+function initialize_scales(data) {
+    var rad = Math.PI * 2;
+    var offset = rad / 4;
     return {
         duration:d3.scale.linear()
-            .domain([0, 60])
+            .domain([0, data.Window])
             .range([7, 25]),
         age:d3.scale.pow().exponent(1/2)
-            .domain([0, 60])
+            .domain([0, data.Window])
             .range(["blue", "white"]),
         signal:d3.scale.log().base(2)
-            .range([0, 250])
+            .range([50, Math.min(h/2, w/2) - 25])
+            .domain([
+                d3.min(data.Data, function(d) { return d.AvgSignal; }),
+                d3.max(data.Data, function(d) { return d.AvgSignal; })
+            ]),
+        age_radius:d3.scale.linear()
+            .domain([0, data.Window])
+            .range([0 - offset, rad - offset])
     };
 }
 
-// 0 == 45 to 60 minutes ago
-// 1 == 30 to 45 ...
-// 2 == 15 to 30 ...
-// 3 == 0  to 15 ...
-function bin_ping(min, value, inc) {
-    if (value < min + inc) return 0;
-    if (value < min + inc * 2) return 1;
-    if (value < min + inc * 3) return 2;
-    return 3;
-}
-
-
-function add_arcs(mac, buckets) {
-    var angle = d3.scale.linear()
-            .domain([0, 4])
-            .range([0, 2 * Math.PI]);
-    
-    var color = d3.scale.pow(1/2)
-            .domain([0, 15])
-            .range(["white", "#259E1C"])
-   
-    var arc = d3.svg.arc()
-        .innerRadius(50)
-        .outerRadius(60)
-        .startAngle(function(d) {
-            return angle(d[0]);
-        })
-        .endAngle(function(d) {
-            return angle(d[1]);
-        });
-   
-    d3.select("g[mac='"+mac+"']")
-        .selectAll("path")
-        .data(buckets)
-        .enter()
-        .append("path")
-        .attr("d", function(d, i) {
-            return arc([i + 0.02, i+1 - 0.02]);
-        })
-        .attr("fill", "white")
-        .attr("opacity", 0);
-
-    d3.select("g[mac='"+mac+"']")
-        .selectAll("path")
-        .transition()
-        .duration(500)
-        .attr("fill", function(d, i) {
-            return color(Math.min(15, d));
-        })
-        .attr("opacity", 1);
-}
-
-function remove_arcs() {
-    d3.select("g[mac='"+active+"']")
-        .selectAll("path")
-        .remove();
-    active = null;
-}
-
-
-function show_details(data) {
-    if (active == data.meta.mac) return;
-    var buckets = [0, 1, 2, 3].map(function(val) {
-        return 0;
+// download data and build d3 visualization
+function runner() {
+    $.getJSON(endpoint, function(data) {
+        scales = initialize_scales(data)    
+        
+        // add fixed centroid
+        data.Data.unshift({x:w/2, y:h/2, fixed:true});
+        
+        // construct visualization from data
+        construct_nodes(data);
     });
-    $(data.data).each(function(index, item) {
-        buckets[bin_ping(data.min_arrival, item.arrival, 60 * 15)]++;
-    });
-    remove_arcs();
-    add_arcs(data.meta.mac, buckets);
-    active = data.meta.mac;
 }
 
-function build_nodes (force, nodes) { 
-    // timestamp rounded to nearest 5 minute interval
-    // less than current timestamp
-    var now = Math.floor(((new Date).getTime() / 1000) / 300) * 300;
-
-    function node_mouseover(d, i) {
-        if (d.fixed) return;
-        d3.select(this)
-            .select("circle")
-            .transition()
-            .duration(200)
-            .style("fill", "#82C910")
-            .attr('r', function (d) {
-                var duration = (d.max_arrival - d.min_arrival) / 60;
-                return scale.duration(duration) * 1.5;
-            })
+function construct_nodes(data) { 
+    
+    function getDuration(d) {
+        return (d.LastArrival - d.FirstArrival) / 60;
     }
 
-    function node_mouseout(d, i) {
-        if (d.fixed) return;
-        d3.select(this)
-            .select("circle")
-            .transition()
-            .duration(500)
-            .style('fill', function (d) {
-                var age = (now - d.max_arrival) / 60;
-                return scale.age(age);
-            })
-            .attr('r', function (d) {
-                var duration = (d.max_arrival - d.min_arrival) / 60;
-                return scale.duration(duration);
-            });
+    function getAge(d) {
+        return (data.Start + (data.Window * 60) - d.LastArrival) / 60;
+    }
+
+    function computeX(d, mag) {
+        return Math.cos(scales.age_radius(getAge(d))) * mag;
     }
     
-    function download_history(mac, callback) {
-        $.getJSON(base_url + "/pings", {mac:mac}, function(data) {
-            device_data[mac] = data;
-            callback(data);
-        }); 
+    function computeY(d, mag) {
+        return Math.sin(scales.age_radius(getAge(d))) * mag;
     }
-    
-    function node_click (d, i) {
-        if (d3.event.defaultPrevented || d.fixed) return; // click suppressed
-        var THIS = this;
-        if (!device_data.hasOwnProperty(d.mac)) {
-            download_history(d.mac, show_details);
-        }
-        else {
-            show_details(device_data[d.mac]);
-        }
-    }
-    
-    var node = svg.selectAll('.node')
-        .data(nodes)
+
+    var nodes = svg.selectAll('.node')
+        .data(data.Data)
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("mac", function(d) {
             if (d.fixed) return "";
-            return d.mac;
-        })
-        .call(force.drag)
-        .on('click', node_click)
-        .on('mouseover', node_mouseover)
-        .on('mouseout', node_mouseout);
+            return d.Mac;
+        });
      
-    node.append("circle")
+    nodes.append("circle")
         .style('fill', function (d) {
             if (d.fixed) return "#828296";
-            var age = (now - d.max_arrival) / 60;
-            return scale.age(age);
+            return scales.age(getAge(d));
         })
         .attr('r', function (d) {
             if (d.fixed) return 10;
-            var duration = (d.max_arrival - d.min_arrival) / 60;
-            return scale.duration(duration);
-        });
-    
-    node.append("text")
-        .attr("dy", 5)
-        .text(function (d) {
-            if (d.fixed) return "Sensor";
-            if (!d.manuf) return "None";
-            return d.manuf;
-        });
-    
-    return node;
-}
-
-function build_legend() {
-    
-    
-    var data = [
-        {age:0,duration:60},
-        {age:15,duration:45},
-        {age:30,duration:30},
-        {age:45,duration:15},
-        {age:60,duration:0}
-    ];
-          
-    var legend = svg.selectAll('.legend')
-        .data(data)
-        .enter()
-        .append("g")
-        .attr("class", "legend");
-
-    legend.append("circle")
-        .attr("cx", w - 100)
-        .attr("cy", function(d, i) {
-            return 50 + ((scale.duration(d.duration) + 6) + 30) * i;
+            return scales.duration(getDuration(d));
         })
-        .style('fill', function (d) {
-            return scale.age(d.age);
+        .attr('cx', function(d) {
+            if (d.fixed) return d.x;
+            return w/2 + computeX(d, scales.signal(d.AvgSignal));
         })
-        .attr('r', function (d) {
-            return scale.duration(d.duration);
+        .attr('cy', function(d) {
+            if (d.fixed) return d.y;
+            return h/2 + computeY(d, scales.signal(d.AvgSignal));
         });
-     
-    svg.append("text")
-        .attr("class", "legend")
-        .attr("x", w - (100 + 50))
-        .attr("y", 20)
-        .text("color-recent");
-    
-    svg.append("text")
-        .attr("class", "legend")
-        .attr("x", w - 50)
-        .attr("y", 20)
-        .text("size-duration");
-
-     
-     legend.append("text")
-        .attr("x", w - (100 + 50))
-        .attr("y", function(d, i) {
-            return 50 + ((scale.duration(d.duration) + 6) + 30) * i + 5;
-        })
-        .text(function(d) {
-            return d.age;
-        });
-     
-     legend.append("text")
-        .attr("x", w - 50)
-        .attr("y", function(d, i) {
-            return 50 + ((scale.duration(d.duration) + 6) + 30) * i + 5;
-        })
-        .text(function(d) {
-            return d.duration;
-        });
-
 }
 
     </script>
