@@ -3,18 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
-	"strconv"
 )
 
-func StartServer(in_port int) {
-	db := InitDBClient("postgres://jeff:password@localhost/wifi")
-	attachHandlers(db)
-	port := ":" + strconv.Itoa(in_port)
+func StartServer(c *Config) {
+	db := InitDBClient(c.Postgres)
+	AttachHandlers(db)
+	port := ":" + c.Port
 	log.Println("Starting server at 127.0.0.1" + port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
 
-func attachHandlers(db *DBClient) {
+func AttachHandlers(db *DBClient) {
 	http.Handle("/", &IndexHandler{})
 	http.Handle("/packet", &PacketHandler{Db: db})
 	http.Handle("/query", &QueryHandler{Db: db})

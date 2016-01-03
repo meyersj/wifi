@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-const PGCONN string = "postgres://jeff:password@localhost/wifi"
+var conf *Config = ReadConfig("config.toml")
 
 func BuildPostPayload() *bytes.Buffer {
 	packet := &wifiproto.Packet{
@@ -42,7 +42,7 @@ func TestIndexHandler(t *testing.T) {
 }
 
 func TestPostPacketHandler(t *testing.T) {
-	db := InitDBClient(PGCONN)
+	db := InitDBClient(conf.Postgres)
 	handler := PacketHandler{Db: db}
 	defer handler.Db.DB.Close()
 
@@ -68,7 +68,7 @@ func TestPostPacketHandler(t *testing.T) {
 }
 
 func TestQueryHandlerArgs(t *testing.T) {
-	db := InitDBClient(PGCONN)
+	db := InitDBClient(conf.Postgres)
 	handler := QueryHandler{Db: db}
 	defer handler.Db.DB.Close()
 	req, _ := http.NewRequest("GET", "/query", nil)
