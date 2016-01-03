@@ -20,6 +20,6 @@ func ReadConfig(filename string) *Config {
 }
 
 func main() {
-	conf := ReadConfig("sample-config.toml")
+	conf := ReadConfig("config.toml")
 	StartServer(conf)
 }
