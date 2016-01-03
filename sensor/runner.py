@@ -48,7 +48,7 @@ def main():
     # build filter for packet frame types to pass through
     # and a filter to ignore frames from sensor
     subtype_expr = "wlan.fc.type_subtype == {0}"
-    exclude_expr = "wlan.addr != {0}"
+    exclude_expr = "wlan.sa != {0}"
     subtype = construct_filter_expr(subtype_expr, " || ", INCLUDE_FRAME_TYPES)
     exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
