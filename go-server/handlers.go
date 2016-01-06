@@ -42,16 +42,24 @@ func (p *PacketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			res.Msg = "failed to read request body"
+			res.Msg = "Failed to read request body"
+			log.Println(res.Msg)
 			break
 		}
-		packet := &wifiproto.Packet{}
-		err = proto.Unmarshal(data, packet)
+
+		payload := &wifiproto.Payload{}
+		err = proto.Unmarshal(data, payload)
 		if err != nil {
-			res.Msg = "failed to parse protobuf payload"
+			res.Msg = "Failed to parse protobuf payload"
+			log.Println(res.Msg)
 			break
 		}
-		p.Db.InsertPacket(packet)
+
+		for i := 0; i < len(payload.Data); i++ {
+			log.Println(payload.Data[i])
+			p.Db.InsertPacket(payload.Data[i])
+		}
+
 		res.Success = true
 		res.Msg = ""
 	}
