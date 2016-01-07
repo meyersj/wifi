@@ -20,12 +20,12 @@
       
       circle {
         stroke: #7289D3;
-        stroke-width: 2px;
+        stroke-width: 1px;
       }
      
       circle:hover {
         stroke: #596CA3;
-        stroke-width: 3px;
+        stroke-width: 2px;
       }
               
       text {
@@ -65,22 +65,20 @@
 
 var w, h, svg, scales;
 var window_size = 10;
+var refresh_interval = 5000;
+var devices = {};
 var endpoint = "http://explore.meyersj.com:8005/query?window=" + window_size;
-//var endpoint = "http://localhost:8005/query?window=" + window_size;
 
 $(document).ready(function() {
-    function refresh() {
-        w = $("#visual").outerWidth();
-        h = window.innerHeight;
-        runner();
-    }
-  
-    // fetch new data and update visualization each interval
-    refresh();
-    setInterval(refresh, 5000);
+    w = $("#visual").outerWidth();
+    h = window.innerHeight;
+    svg = canvas("#visual");
+    add_legend(svg);
+    runner();
+    setInterval(function() { runner(); }, refresh_interval);
 });
 
-function initialize_canvas(div) {
+function canvas(div) {
     if(svg) svg.remove();
     return d3.select(div)
         .append("svg")
@@ -88,44 +86,66 @@ function initialize_canvas(div) {
         .attr("width", w);
 }
 
-function initialize_scales(data) {
+function add_legend(svg) {
+    svg.append("circle")
+        .style("fill", "#FFFFFF")
+        .attr('r', Math.min(h/2, w/2) - 25) 
+        .attr('cx', w/2)
+        .attr('cy', h/2);
+}
+
+function build_scales(dataset) {
     var rad = Math.PI * 2;
     var offset = rad / 4;
     return {
         duration:d3.scale.linear()
-            .domain([0, data.Window])
+            .domain([0, window_size])
             .range([7, 25]),
         age:d3.scale.pow().exponent(1/2)
-            .domain([0, data.Window])
+            .domain([0, window_size])
             .range(["blue", "white"]),
         signal:d3.scale.log().base(2)
             .range([50, Math.min(h/2, w/2) - 25])
             .domain([
-                d3.min(data.Data, function(d) { return d.AvgSignal; }),
-                d3.max(data.Data, function(d) { return d.AvgSignal; })
+                d3.min(dataset, function(d) { return d.AvgSignal; }),
+                d3.max(dataset, function(d) { return d.AvgSignal; })
             ]),
         age_radius:d3.scale.linear()
-            .domain([0, data.Window])
+            .domain([0, window_size])
             .range([0 - offset, rad - offset])
     };
 }
 
-// download data and build d3 visualization
 function runner() {
     $.getJSON(endpoint, function(data) {
-        svg = initialize_canvas("#visual");
-        scales = initialize_scales(data)    
-        
-        // add fixed centroid
-        data.Data.unshift({x:w/2, y:h/2, fixed:true});
-        
-        // construct visualization from data
-        construct_nodes(data);
+        var dataset = merge_data(devices, data.Data);
+        var nodes = svg.selectAll('.node')
+            .data(dataset, function(d) {
+                return d.Mac;
+            });
+        console.log("enter");
+        scales = build_scales(dataset)    
+        visualize(data, nodes);
     });
 }
 
-function construct_nodes(data) { 
-    
+function merge_data(devices, data) {
+    $.each(data, function(i, d) {
+        devices[d.Mac] = d;
+    });
+    var dataset = []
+    for (var key in devices) {
+        dataset.push(devices[key]);
+    }
+    dataset.sort(function(a, b) {
+        return a.LastArrival - b.LastArrival;
+    });
+    dataset.unshift({x:w/2, y:h/2, fixed:true, Mac:"Centroid"});
+    return dataset; 
+}
+
+function visualize(data, nodes) { 
+
     function getDuration(d) {
         return (d.LastArrival - d.FirstArrival) / 60;
     }
@@ -142,33 +162,47 @@ function construct_nodes(data) {
         return Math.sin(scales.age_radius(getAge(d))) * mag;
     }
 
-    var nodes = svg.selectAll('.node')
-        .data(data.Data)
-        .enter()
+    function fill(d) {
+        if (d.fixed) return "#828296";
+        return scales.age(getAge(d));
+    }
+
+    function radius(d) {
+        if (d.fixed) return 10;
+        return scales.duration(getDuration(d));
+    }
+    
+    function circleX(d) {
+        if (d.fixed) return d.x;
+        return w/2 + computeX(d, scales.signal(d.AvgSignal));
+    }
+
+    function circleY(d) {
+        if (d.fixed) return d.y;
+        return h/2 + computeY(d, scales.signal(d.AvgSignal));
+    }
+    
+    nodes.enter()
         .append("g")
         .attr("class", "node")
         .attr("mac", function(d) {
-            if (d.fixed) return "";
             return d.Mac;
-        });
-     
-    nodes.append("circle")
-        .style('fill', function (d) {
-            if (d.fixed) return "#828296";
-            return scales.age(getAge(d));
         })
-        .attr('r', function (d) {
-            if (d.fixed) return 10;
-            return scales.duration(getDuration(d));
-        })
-        .attr('cx', function(d) {
-            if (d.fixed) return d.x;
-            return w/2 + computeX(d, scales.signal(d.AvgSignal));
-        })
-        .attr('cy', function(d) {
-            if (d.fixed) return d.y;
-            return h/2 + computeY(d, scales.signal(d.AvgSignal));
-        });
+        .append("circle")
+        .style('fill', fill)
+        .attr('r', radius)
+        .attr('cx', circleX)
+        .attr('cy', circleY);
+
+    nodes.select("circle")
+        .transition()
+        .duration(refresh_interval)
+        .style('fill', fill)
+        .attr('r', radius)
+        .attr('cx', circleX)
+        .attr('cy', circleY);
+  
+    nodes.exit().remove();
 }
 
     </script>
