@@ -63,20 +63,23 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script>
 
-var w, h, svg, scales;
+var w, h, svg
+var scales = {};
 var window_size = 10;
-var refresh_interval = 5000;
+var interval = 5000;
 var devices = {};
 var endpoint = "http://explore.meyersj.com:8005/query?window=" + window_size;
+
 
 $(document).ready(function() {
     w = $("#visual").outerWidth();
     h = window.innerHeight;
     svg = canvas("#visual");
-    add_legend(svg);
-    runner();
-    setInterval(function() { runner(); }, refresh_interval);
+    scales.duration = buildDurationScale(window_size);
+    update();
+    setInterval(function() { update(); }, interval);
 });
+
 
 function canvas(div) {
     if(svg) svg.remove();
@@ -86,102 +89,58 @@ function canvas(div) {
         .attr("width", w);
 }
 
-function add_legend(svg) {
-    svg.append("circle")
-        .style("fill", "#FFFFFF")
-        .attr('r', Math.min(h/2, w/2) - 25) 
-        .attr('cx', w/2)
-        .attr('cy', h/2);
+function buildDurationScale(window_size) {
+    return d3.scale.linear()
+        .domain([0, window_size * 60])
+        .range([7, 25]);
 }
 
-function build_scales(dataset) {
-    var rad = Math.PI * 2;
-    var offset = rad / 4;
-    return {
-        duration:d3.scale.linear()
-            .domain([0, window_size])
-            .range([7, 25]),
-        age:d3.scale.pow().exponent(1/2)
-            .domain([0, window_size])
-            .range(["blue", "white"]),
-        signal:d3.scale.log().base(2)
-            .range([50, Math.min(h/2, w/2) - 25])
-            .domain([
-                d3.min(dataset, function(d) { return d.AvgSignal; }),
-                d3.max(dataset, function(d) { return d.AvgSignal; })
-            ]),
-        age_radius:d3.scale.linear()
-            .domain([0, window_size])
-            .range([0 - offset, rad - offset])
-    };
+function buildYScale(data) {
+    return d3.scale.log().base(2)
+        .domain([
+            d3.min(data, function(d) { return d.AvgSignal; }),
+            d3.max(data, function(d) { return d.AvgSignal; })
+        ])
+        .range([0 + 10, h - 10]);
 }
 
-function runner() {
+function buildXScale(data, start) {
+    return d3.scale.linear()
+        .domain([start, start + (60 * window_size)])
+        .range([0 + 10, w - 10]);
+}
+
+function update() {
     $.getJSON(endpoint, function(data) {
-        var dataset = merge_data(devices, data.Data);
-        var nodes = svg.selectAll('.node')
-            .data(dataset, function(d) {
-                return d.Mac;
-            });
-        console.log("enter");
-        scales = build_scales(dataset)    
-        visualize(data, nodes);
+        var dataset = merge(devices, data.Data);
+        scales.scaleX = buildXScale(dataset, data.Start);
+        scales.scaleY = buildYScale(dataset);
+        visualize(dataset);
     });
 }
 
-function merge_data(devices, data) {
+function merge(devices, data) {
+    var dataset = []
     $.each(data, function(i, d) {
         devices[d.Mac] = d;
     });
-    var dataset = []
     for (var key in devices) {
         dataset.push(devices[key]);
     }
     dataset.sort(function(a, b) {
         return a.LastArrival - b.LastArrival;
     });
-    dataset.unshift({x:w/2, y:h/2, fixed:true, Mac:"Centroid"});
     return dataset; 
 }
 
-function visualize(data, nodes) { 
 
-    function getDuration(d) {
-        return (d.LastArrival - d.FirstArrival) / 60;
-    }
+function visualize(data) {
 
-    function getAge(d) {
-        return (data.Start + (data.Window * 60) - d.LastArrival) / 60;
-    }
+    var nodes = svg.selectAll(".node")
+        .data(data, function(d) {
+            return d.Mac;        
+        });
 
-    function computeX(d, mag) {
-        return Math.cos(scales.age_radius(getAge(d))) * mag;
-    }
-    
-    function computeY(d, mag) {
-        return Math.sin(scales.age_radius(getAge(d))) * mag;
-    }
-
-    function fill(d) {
-        if (d.fixed) return "#828296";
-        return scales.age(getAge(d));
-    }
-
-    function radius(d) {
-        if (d.fixed) return 10;
-        return scales.duration(getDuration(d));
-    }
-    
-    function circleX(d) {
-        if (d.fixed) return d.x;
-        return w/2 + computeX(d, scales.signal(d.AvgSignal));
-    }
-
-    function circleY(d) {
-        if (d.fixed) return d.y;
-        return h/2 + computeY(d, scales.signal(d.AvgSignal));
-    }
-    
     nodes.enter()
         .append("g")
         .attr("class", "node")
@@ -189,20 +148,26 @@ function visualize(data, nodes) {
             return d.Mac;
         })
         .append("circle")
-        .style('fill', fill)
-        .attr('r', radius)
-        .attr('cx', circleX)
-        .attr('cy', circleY);
+        .attr('r', function(d) {
+            return scales.duration(d.LastArrival - d.FirstArrival);
+        })
+        .attr('cx', function(d) {
+            return scales.scaleX(d.LastArrival);
+        })
+        .attr('cy', function(d) {
+            return scales.scaleY(d.AvgSignal);
+        });
 
-    nodes.select("circle")
-        .transition()
-        .duration(refresh_interval)
-        .style('fill', fill)
-        .attr('r', radius)
-        .attr('cx', circleX)
-        .attr('cy', circleY);
-  
-    nodes.exit().remove();
+    nodes.select("circle").transition().duration(interval)
+        .attr('r', function(d) {
+            return scales.duration(d.LastArrival - d.FirstArrival);
+        })
+        .attr('cx', function(d) {
+            return scales.scaleX(d.LastArrival);
+        })
+        .attr('cy', function(d) {
+            return scales.scaleY(d.AvgSignal);
+        }); 
 }
 
     </script>
