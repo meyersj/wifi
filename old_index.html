@@ -96,7 +96,7 @@ function add_legend(svg) {
 
 function build_scales(dataset) {
     var rad = Math.PI * 2;
-    var offset = rad / 4;
+    var offset = rad / 8;
     return {
         duration:d3.scale.linear()
             .domain([0, window_size])
@@ -112,7 +112,7 @@ function build_scales(dataset) {
             ]),
         age_radius:d3.scale.linear()
             .domain([0, window_size])
-            .range([0 - offset, rad - offset])
+            .range([0 - offset, rad - (offset * 3)])
     };
 }
 
@@ -132,6 +132,7 @@ function runner() {
 function merge_data(devices, data) {
     $.each(data, function(i, d) {
         devices[d.Mac] = d;
+        console.log(d.AvgSignal);
     });
     var dataset = []
     for (var key in devices) {
@@ -182,19 +183,29 @@ function visualize(data, nodes) {
         return h/2 + computeY(d, scales.signal(d.AvgSignal));
     }
     
-    nodes.enter()
-        .append("g")
+    var group = nodes.enter().append("g")
         .attr("class", "node")
         .attr("mac", function(d) {
             return d.Mac;
         })
-        .append("circle")
+        .attr('x', circleX)
+        .attr('y', circleY);
+
+    group.append("text")
+        .attr('x', circleX)
+        .attr('y', circleY)
+        .text(function(d) { return d.Mac; })
+        .style("font-family", "sans-serif")
+        .style("font-size", "20px")
+        .style("fill", "red");
+    
+    group.append("circle")
         .style('fill', fill)
         .attr('r', radius)
         .attr('cx', circleX)
         .attr('cy', circleY);
 
-    nodes.select("circle")
+    group.select("circle")
         .transition()
         .duration(refresh_interval)
         .style('fill', fill)

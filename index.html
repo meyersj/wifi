@@ -70,16 +70,15 @@ var interval = 5000;
 var devices = {};
 var endpoint = "http://explore.meyersj.com:8005/query?window=" + window_size;
 
-
 $(document).ready(function() {
     w = $("#visual").outerWidth();
     h = window.innerHeight;
     svg = canvas("#visual");
     scales.duration = buildDurationScale(window_size);
+    scales.scaleX = buildXScale();
     update();
     setInterval(function() { update(); }, interval);
 });
-
 
 function canvas(div) {
     if(svg) svg.remove();
@@ -89,32 +88,35 @@ function canvas(div) {
         .attr("width", w);
 }
 
+function buildAgeScale(start) {
+    return d3.scale.pow().exponent(1/2)
+        .domain([start + (window_size * 60), start])
+        .range(["blue", "white"]);
+}
+
 function buildDurationScale(window_size) {
     return d3.scale.linear()
         .domain([0, window_size * 60])
-        .range([7, 25]);
+        .range([5, 15]);
 }
 
-function buildYScale(data) {
-    return d3.scale.log().base(2)
-        .domain([
-            d3.min(data, function(d) { return d.AvgSignal; }),
-            d3.max(data, function(d) { return d.AvgSignal; })
-        ])
-        .range([0 + 10, h - 10]);
+function buildXScale() {
+    return d3.scale.linear()
+        .domain([-30, -100])
+        .range([0 + 20, w - 20]);
 }
 
-function buildXScale(data, start) {
+function buildYScale(start) {
     return d3.scale.linear()
         .domain([start, start + (60 * window_size)])
-        .range([0 + 10, w - 10]);
+        .range([h - 20, 0 + 20]);
 }
 
 function update() {
     $.getJSON(endpoint, function(data) {
         var dataset = merge(devices, data.Data);
-        scales.scaleX = buildXScale(dataset, data.Start);
-        scales.scaleY = buildYScale(dataset);
+        scales.age = buildAgeScale(data.Start);
+        scales.scaleY = buildYScale(data.Start);
         visualize(dataset);
     });
 }
@@ -133,7 +135,6 @@ function merge(devices, data) {
     return dataset; 
 }
 
-
 function visualize(data) {
 
     var nodes = svg.selectAll(".node")
@@ -148,25 +149,22 @@ function visualize(data) {
             return d.Mac;
         })
         .append("circle")
-        .attr('r', function(d) {
-            return scales.duration(d.LastArrival - d.FirstArrival);
-        })
-        .attr('cx', function(d) {
-            return scales.scaleX(d.LastArrival);
-        })
-        .attr('cy', function(d) {
-            return scales.scaleY(d.AvgSignal);
+        .attr('fill', function(d) { 
+            return scales.age(d.LastArrival);
         });
 
     nodes.select("circle").transition().duration(interval)
+        .attr('fill', function(d) {
+            return scales.age(d.LastArrival);
+        })
         .attr('r', function(d) {
             return scales.duration(d.LastArrival - d.FirstArrival);
         })
         .attr('cx', function(d) {
-            return scales.scaleX(d.LastArrival);
+            return scales.scaleX(d.AvgSignal);
         })
         .attr('cy', function(d) {
-            return scales.scaleY(d.AvgSignal);
+            return scales.scaleY(d.LastArrival);
         }); 
 }
 
