@@ -26,7 +26,7 @@ func InitDBClient(uri string) *DBClient {
 }
 
 func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
-	stmt := "INSERT INTO packets " +
+	stmt := "INSERT INTO data.packets " +
 		"(arrival, subtype, src, dest, freq, signal) " +
 		"VALUES " +
 		"($1, $2, $3, $4, $5, $6)"
@@ -44,7 +44,7 @@ func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
 	records := []*wifiproto.Packet{}
 
 	query := "SELECT arrival, subtype, src, signal " +
-		"FROM packets " +
+		"FROM data.packets " +
 		"WHERE signal IS NOT NULL AND arrival > $1 " +
 		"ORDER BY src, arrival DESC"
 
