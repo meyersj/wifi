@@ -1,0 +1,14 @@
+\set window_size (60 * 60 * 24)
+
+SET search_path = data;
+
+INSERT INTO daily (day, mac, avg_signal, hour_count)
+SELECT
+    :start_time::numeric,
+    mac,
+    round(avg(avg_signal)) AS avg_signal,
+    count(hour) AS hour_count
+FROM hourly
+WHERE hour BETWEEN :start_time  AND :start_time + :window_size
+GROUP BY mac
+ORDER BY mac;

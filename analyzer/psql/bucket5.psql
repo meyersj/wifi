@@ -1,0 +1,16 @@
+\set window_size (60 * 5)
+
+SET search_path = data;
+
+INSERT INTO bucket5 (bucket, mac, min_signal, max_signal, avg_signal, ping_count)
+SELECT
+    :start_time::numeric AS bucket,
+    src,
+    min(signal),
+    max(signal),
+    round(avg(signal)),
+    count(src)
+FROM packets
+WHERE arrival BETWEEN  :start_time  AND :start_time + :window_size
+GROUP BY src
+ORDER BY src;
