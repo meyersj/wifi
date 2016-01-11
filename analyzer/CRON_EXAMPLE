@@ -1,0 +1,4 @@
+*/5 * * * * /usr/bin/python /path/to/wifi/analyzer/runner.py bucket5
+2   * * * * /usr/bin/python /path/to/wifi/analyzer/runner.py hourly
+2   0 * * * /usr/bin/python /path/to/wifi/analyzer/runner.py daily
+3   0 * * 7 /usr/bin/python /path/to/wifi/analyzer/runner.py weekly
