@@ -117,7 +117,7 @@ function buildYScale(start) {
 
 function buildHourXScale(start_time) {
     return d3.scale.linear()
-        .domain([start_time, start_time + 3600 - 360])
+        .domain([start_time, start_time + 3600])
         .range([0 + 20, w - 20]);
 }
 
