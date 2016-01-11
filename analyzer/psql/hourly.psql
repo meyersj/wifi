@@ -2,7 +2,7 @@
 
 SET search_path = data;
 
---INSERT INTO hourly (hour, mac, avg_signal, bucket5_count)
+INSERT INTO hourly (hour, mac, avg_signal, bucket5_count)
 SELECT
     :start_time::numeric,
     mac,
