@@ -17,7 +17,6 @@
     <![endif]-->
   
     <style>
-      
       circle {
         stroke: #7289D3;
         stroke-width: 1px;
@@ -41,7 +40,6 @@
       .node:hover text {
         opacity: 1;
       }
-
     </style>
   </head>
   
@@ -114,20 +112,26 @@ function buildYScale(start) {
 
 function update() {
     $.getJSON(endpoint, function(data) {
-        var dataset = merge(devices, data.Data);
+        var dataset = merge(devices, data.Start, data.Data);
         scales.age = buildAgeScale(data.Start);
         scales.scaleY = buildYScale(data.Start);
         visualize(dataset);
     });
 }
 
-function merge(devices, data) {
+function merge(devices, start, data) {
     var dataset = []
     $.each(data, function(i, d) {
         devices[d.Mac] = d;
     });
     for (var key in devices) {
-        dataset.push(devices[key]);
+        // expire old devices
+        if (devices[key].LastArrival < start) {
+            delete devices[key];
+        }
+        else {
+            dataset.push(devices[key]);
+        }
     }
     dataset.sort(function(a, b) {
         return a.LastArrival - b.LastArrival;
@@ -142,18 +146,29 @@ function visualize(data) {
             return d.Mac;        
         });
 
-    nodes.enter()
-        .append("g")
+    var group = nodes.enter().append("g")
         .attr("class", "node")
         .attr("mac", function(d) {
             return d.Mac;
-        })
-        .append("circle")
+        });
+        
+    group.append("circle")
         .attr('fill', function(d) { 
             return scales.age(d.LastArrival);
         });
 
-    nodes.select("circle").transition().duration(interval)
+    group.append("text");
+        
+    group.select("text").transition().duration(interval)
+        .attr('x', function(d) {
+            return scales.scaleX(d.AvgSignal);
+        })
+        .attr('y', function(d) {
+            return scales.scaleY(d.LastArrival);
+        })
+        .text(function(d) { return d.Mac; });
+
+    group.select("circle").transition().duration(interval)
         .attr('fill', function(d) {
             return scales.age(d.LastArrival);
         })
@@ -165,7 +180,9 @@ function visualize(data) {
         })
         .attr('cy', function(d) {
             return scales.scaleY(d.LastArrival);
-        }); 
+        });
+
+    nodes.exit().remove();
 }
 
     </script>
