@@ -166,3 +166,55 @@ func (q *QueryHandler) BinRecords(records []*wifiproto.Packet) []*DeviceSummary 
 	}
 	return data
 }
+
+type Bucket5DAO struct {
+	Bucket    int64
+	Mac       string
+	AvgSignal int32
+	PingCount int32
+}
+
+type HourSummaryResponse struct {
+	Start int64
+	Data  []*Bucket5DAO
+	Error string
+}
+
+func (r *HourSummaryResponse) ToJSON() string {
+	data, err := json.Marshal(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(data)
+}
+
+type HourSummaryHandler struct {
+	Db *DBClient
+}
+
+func (h *HourSummaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-type", "text/json")
+
+	res := &HourSummaryResponse{}
+	switch r.Method {
+	case "GET":
+		r.ParseForm()
+		mac := r.Form.Get("mac")
+		if mac == "" {
+			res.Error = "must include `mac` address parameter"
+		} else {
+			// round off to last 5 minute bucket a little over an hour ago
+			now := time.Now().Unix()
+			res.Start = int64(math.Floor(float64(now-3600)/360)) * 360
+			res.Data = h.Db.HourSummary(mac, res.Start)
+		}
+		h.WriteResponse(w, res.ToJSON())
+	default:
+		h.WriteResponse(w, "{error:'INVALID REQUEST'}")
+	}
+}
+
+func (h *HourSummaryHandler) WriteResponse(w http.ResponseWriter, r string) {
+	fmt.Fprintf(w, r)
+}
