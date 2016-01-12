@@ -1,0 +1,23 @@
+circle {
+    stroke: #7289D3;
+    stroke-width: 1px;
+}
+
+circle:hover {
+    stroke: #596CA3;
+    stroke-width: 2px;
+}
+      
+text {
+    text-anchor: middle;
+    font-size: 12px;
+    cursor: default;
+}
+
+.node text {
+    opacity: 0;
+}
+
+.node:hover text {
+    opacity: 1;
+}
