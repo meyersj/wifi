@@ -38,7 +38,7 @@ Legend.prototype = {
                 return (recent - d) / 60 + " min";
             })
             .attr("class", "time-legend")
-            .attr("x", 20)
+            .attr("x", 0)
             .attr("y", function(d) {
                 return scale(d);
             });

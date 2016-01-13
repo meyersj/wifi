@@ -4,24 +4,23 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
     <title>Raspberry WiFi Listener Visualization</title>
     <link
         href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
         rel="stylesheet">
-    
     <!-- IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    
     <link href="wifi.css" rel="stylesheet">
   </head>
   <body>
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12 main">
+            <h4>TODO</h4>
+            <p>Description of what you're looking at</p>
         </div>
       </div>
       <div class="row">
@@ -31,15 +30,14 @@
       </div>
     </div>
   </body>
-
-<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="cache.js"></script>
-<script src="scales.js"></script>
-<script src="legend.js"></script>
-<script>
+  <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="cache.js"></script>
+  <script src="scales.js"></script>
+  <script src="legend.js"></script>
+  <script>
 
 var window_size = 10;
 var interval = 5000;
@@ -55,7 +53,7 @@ var hour_endpoint = base_url + "/hour";
 
 $(document).ready(function() {
     w = $("#visual").outerWidth();
-    h = window.innerHeight;
+    h = window.innerHeight * 0.9;
     svg = canvas("#visual");
     scaleFactory = new ScaleFactory(w, h, window_size);
     legend = new Legend(svg, scaleFactory);
@@ -221,5 +219,5 @@ function visualize(data) {
 
     nodes.exit().remove();
 }
-</script>
+  </script>
 </html>
