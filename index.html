@@ -41,13 +41,13 @@
 <script src="legend.js"></script>
 <script>
 
-var w, h, svg;
-var active = null;
-var scales = {};
 var window_size = 10;
 var interval = 5000;
-var hourDataCache = new DataCache();;
-var legend = new Legend();
+var w, h, svg;
+var scaleFactory, legend, hourDataCache;
+var scales = {};
+var active = null;
+var legend;
 var devices = {};
 var base_url = "http://explore.meyersj.com:8005";
 var query_endpoint = base_url + "/query";
@@ -57,8 +57,10 @@ $(document).ready(function() {
     w = $("#visual").outerWidth();
     h = window.innerHeight;
     svg = canvas("#visual");
-    legend.setSvg(svg);
-    buildScales(w, window_size);
+    scaleFactory = new ScaleFactory(w, h, window_size);
+    legend = new Legend(svg, scaleFactory);
+    hourDataCache = new DataCache();
+    buildScales(scaleFactory);
     update();
     setInterval(function() { update(); }, interval);
 });
@@ -71,11 +73,11 @@ function canvas(div) {
         .attr("width", w);
 }
 
-function buildScales() {
-    scales.duration = buildDurationScale(window_size);
-    scales.scaleX = buildXScale(w);
-    scales.hourColor = buildHourColorScale();
-    scales.hourRadius = buildHourRadiusScale();
+function buildScales(factory) {
+    scales.duration = factory.windowDuration();
+    scales.scaleX = factory.windowSignal();
+    scales.hourColor = factory.hourSignal();
+    scales.hourRadius = factory.hourPingRate();
 }
 
 function mouseoverNode(d) {
@@ -94,13 +96,13 @@ function mouseoutNode(d) {
 }
 
 function clear_hour_circles() {
-    var nodes = svg.selectAll(".hour-data-point").remove();;
+    var nodes = svg.selectAll(".hour-data-point");
     nodes.selectAll(".hour-data-point").selectAll("*").remove();
-    nodes.selectAll(".hour-data-point").remove();
+    nodes.remove();
 }
 
 function drawHourSummary(mac, data) {
-    var xScale = buildHourXScale(w, data.Start)
+    var xScale = scaleFactory.hourTime(data.Start)
     var nodes = svg.selectAll(".hour-data-point")
         .data(data.Data)
         .enter()
@@ -129,7 +131,7 @@ function toggleHourSummary(d) {
     if (cache == null) {
         // download and update cache
         $.getJSON(hour_endpoint, {mac:d.Mac}, function(data) {
-            hourDataCache.add(d.Mac, data, 360);
+            hourDataCache.put(d.Mac, data, 360);
             drawHourSummary(d.Mac, data)
         });
     }
@@ -143,8 +145,8 @@ function update() {
     $.getJSON(query_endpoint, {"window":window_size}, function(data) {
         legend.drawSignalStrength(w);
         legend.drawTime(h, data.Start, window_size);
-        scales.age = buildAgeScale(data.Start, window_size);
-        scales.scaleY = buildYScale(h, data.Start, window_size);
+        scales.age = scaleFactory.windowAge(data.Start);
+        scales.scaleY = scaleFactory.windowTime(data.Start);
         var dataset = merge(devices, data.Start, data.Data);
         visualize(dataset);
     });
