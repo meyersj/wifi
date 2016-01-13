@@ -13,7 +13,7 @@ DataCache.prototype = {
         }
         return null;
     },
-    add: function(key, data, ttl) {
+    put: function(key, data, ttl) {
         this.data[key] = {
             expiration: (new Date().valueOf() / 1000) + ttl,
             data: data
