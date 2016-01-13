@@ -186,14 +186,15 @@ function visualize(data) {
             return scales.age(d.LastArrival);
         })
    
-    group.append("text");
-        
+    group.append("text")
+
     nodes.select("text").transition().duration(interval)
         .attr('x', function(d) {
-            return scales.scaleX(d.AvgSignal);
+            var r = scales.duration(d.LastArrival - d.FirstArrival);
+            return scales.scaleX(d.AvgSignal) - 5 - r ;
         })
         .attr('y', function(d) {
-            return scales.scaleY(d.LastArrival) - 15;
+            return scales.scaleY(d.LastArrival) + 3;
         })
         .text(function(d) { return d.Mac; });
     

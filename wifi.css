@@ -9,7 +9,7 @@ circle:hover {
 }
       
 text {
-    text-anchor: middle;
+    text-anchor: end;
     font-size: 12px;
     cursor: default;
 }
