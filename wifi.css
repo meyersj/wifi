@@ -9,6 +9,11 @@ circle:hover {
 }
       
 text {
+    text-anchor: middle;
+    font-size: 12px;
+}
+
+.node text {
     text-anchor: end;
     font-size: 12px;
     cursor: default;

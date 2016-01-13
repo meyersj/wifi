@@ -33,11 +33,12 @@
   </body>
 
 <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js">
-</script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="cache.js"></script>
 <script src="scales.js"></script>
+<script src="legend.js"></script>
 <script>
 
 var w, h, svg;
@@ -46,6 +47,7 @@ var scales = {};
 var window_size = 10;
 var interval = 5000;
 var hourDataCache = new DataCache();;
+var legend = new Legend();
 var devices = {};
 var base_url = "http://explore.meyersj.com:8005";
 var query_endpoint = base_url + "/query";
@@ -55,6 +57,7 @@ $(document).ready(function() {
     w = $("#visual").outerWidth();
     h = window.innerHeight;
     svg = canvas("#visual");
+    legend.setSvg(svg);
     buildScales(w, window_size);
     update();
     setInterval(function() { update(); }, interval);
@@ -138,6 +141,8 @@ function toggleHourSummary(d) {
 
 function update() {
     $.getJSON(query_endpoint, {"window":window_size}, function(data) {
+        legend.drawSignalStrength(w);
+        legend.drawTime(h, data.Start, window_size);
         scales.age = buildAgeScale(data.Start, window_size);
         scales.scaleY = buildYScale(h, data.Start, window_size);
         var dataset = merge(devices, data.Start, data.Data);

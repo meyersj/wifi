@@ -19,4 +19,4 @@ DataCache.prototype = {
             data: data
         };
     }
-}
+};

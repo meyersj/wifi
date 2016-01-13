@@ -13,13 +13,13 @@ function buildDurationScale(window_size) {
 function buildXScale(w) {
     return d3.scale.linear()
         .domain([-30, -100])
-        .range([0 + 20, w - 20]);
+        .range([0 + 50, w - 50]);
 }
 
 function buildYScale(h, start, window_size) {
     return d3.scale.linear()
         .domain([start, start + (60 * window_size)])
-        .range([h - 20, 0 + 20]);
+        .range([h - 50, 0 + 50]);
 }
 
 function buildHourRadiusScale() {
@@ -43,5 +43,5 @@ function buildHourXScale(w, start_time) {
     // x coordinate
     return d3.scale.linear()
         .domain([start_time, start_time + 3600])
-        .range([0 + 20, w - 20]);
+        .range([0 + 50, w - 50]);
 }
