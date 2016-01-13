@@ -42,7 +42,7 @@ Legend.prototype = {
         this.svg.selectAll(".signal-legend").remove();
         xAxisLabelBuilder(svg);
         this.svg.append('text')
-            .text("RSSI (dBM)")
+            .text("RSSI (dBm)")
             .attr("class", "signal-label")
             .attr("x", w / 2)
             .attr("y", 20);
