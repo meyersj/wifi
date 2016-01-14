@@ -9,7 +9,7 @@ circle:hover {
 }
       
 text {
-    text-anchor: middle;
+    text-anchor: start;
     font-size: 12px;
 }
 
@@ -17,11 +17,13 @@ text.time-legend {
     text-anchor: start;
 }
 
+/*
 .node text {
     text-anchor: end;
     font-size: 12px;
     cursor: default;
 }
+*/
 
 .node text {
     opacity: 0;
