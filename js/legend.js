@@ -35,7 +35,7 @@ Legend.prototype = {
         this.svg.selectAll(".time-legend").data(times).enter()
             .append("text")
             .text(function(d) {
-                return (recent - d) / 60 + " min";
+                return Math.round((recent - d) / 60) + " min";
             })
             .attr("class", "time-legend")
             .attr("x", 0)
