@@ -2,7 +2,7 @@
 
 SET search_path = data;
 
-INSERT INTO weekly (week, mac, avg_signal, day_count)
+INSERT INTO weekly (week, mac, day_count)
 SELECT
     :start_time::numeric,
     mac,
