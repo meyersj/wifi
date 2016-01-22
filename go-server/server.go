@@ -17,5 +17,5 @@ func AttachHandlers(db *DBClient) {
 	http.Handle("/", &IndexHandler{})
 	http.Handle("/packet", &PacketHandler{Db: db})
 	http.Handle("/query", &QueryHandler{Db: db})
-	http.Handle("/hour", &HourSummaryHandler{Db: db})
+	http.Handle("/user/summary", &UserSummaryHandler{Db: db})
 }
