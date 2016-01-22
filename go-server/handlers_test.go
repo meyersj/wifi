@@ -119,28 +119,11 @@ func TestQueryHandlerArgs(t *testing.T) {
 	utils.Assert(t, rec.Code == http.StatusOK, "GET /query status code failed")
 }
 
-func TestHourSummaryHandlerNoArgs(t *testing.T) {
+func TestDailySummaryHandlerArgs(t *testing.T) {
 	db := InitDBClient(conf.Postgres)
-	handler := HourSummaryHandler{Db: db}
+	handler := UserSummaryHandler{Db: db}
 	defer handler.Db.DB.Close()
-	req, _ := http.NewRequest("GET", "/hour", nil)
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
-	// read response body
-	//body, err := ioutil.ReadAll(rec.Body)
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
-	//log.Println(string(body))
-	// check that request was succesful
-	utils.Assert(t, rec.Code == http.StatusOK, "GET /hour status code failed")
-}
-
-func TestHourSummaryHandlerArgs(t *testing.T) {
-	db := InitDBClient(conf.Postgres)
-	handler := HourSummaryHandler{Db: db}
-	defer handler.Db.DB.Close()
-	req, _ := http.NewRequest("GET", "/hour", nil)
+	req, _ := http.NewRequest("GET", "/user/summary", nil)
 	req.ParseForm()
 	req.Form.Set("mac", "18:0c:ac:ac:5f:85")
 	rec := httptest.NewRecorder()
