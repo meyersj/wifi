@@ -46,7 +46,6 @@ func (p *PacketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println(res.Msg)
 			break
 		}
-
 		payload := &wifiproto.Payload{}
 		err = proto.Unmarshal(data, payload)
 		if err != nil {
@@ -54,12 +53,10 @@ func (p *PacketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println(res.Msg)
 			break
 		}
-
 		for i := 0; i < len(payload.Data); i++ {
-			log.Println(payload.Data[i])
+			//log.Println(payload.Data[i])
 			p.Db.InsertPacket(payload.Data[i])
 		}
-
 		res.Success = true
 		res.Msg = ""
 	}
@@ -174,13 +171,29 @@ type Bucket5DAO struct {
 	PingCount int32
 }
 
-type HourSummaryResponse struct {
-	Start int64
-	Data  []*Bucket5DAO
-	Error string
+type HourlyDAO struct {
+	Hour         int64
+	Mac          string
+	AvgSignal    int32
+	Bucket5Count int32
 }
 
-func (r *HourSummaryResponse) ToJSON() string {
+//type DailyDAO struct {
+//	Day       int64
+//	Mac       string
+//	AvgSignal int32
+//	HourCount int32
+//}
+
+type UserSummaryResponse struct {
+	HourStart  int64
+	HourData   []*Bucket5DAO
+	DailyStart int64
+	DailyData  []*HourlyDAO
+	Error      []string
+}
+
+func (r *UserSummaryResponse) ToJSON() string {
 	data, err := json.Marshal(r)
 	if err != nil {
 		log.Fatal(err)
@@ -188,26 +201,30 @@ func (r *HourSummaryResponse) ToJSON() string {
 	return string(data)
 }
 
-type HourSummaryHandler struct {
+type UserSummaryHandler struct {
 	Db *DBClient
 }
 
-func (h *HourSummaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *UserSummaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-type", "text/json")
 
-	res := &HourSummaryResponse{}
+	res := &UserSummaryResponse{Error: []string{}}
 	switch r.Method {
 	case "GET":
 		r.ParseForm()
 		mac := r.Form.Get("mac")
 		if mac == "" {
-			res.Error = "must include `mac` address parameter"
+			res.Error = append(res.Error, "must include `mac` address parameter")
 		} else {
-			// round off to last 5 minute bucket a little over an hour ago
 			now := time.Now().Unix()
-			res.Start = int64(math.Floor(float64(now-3600)/360)) * 360
-			res.Data = h.Db.HourSummary(mac, res.Start)
+			// round off to last 5 minute bucket a little over an hour ago
+			res.HourStart = ((now - 3600) / 360) * 360
+			// round off to last hour bucket a little over a day ago
+			res.DailyStart = res.HourStart + (60 * 60) - (60 * 60 * 24)
+			res.HourData = h.Db.HourlySummary(mac, res.HourStart)
+			res.DailyData = h.Db.DailySummary(mac, res.DailyStart)
+
 		}
 		h.WriteResponse(w, res.ToJSON())
 	default:
@@ -215,6 +232,6 @@ func (h *HourSummaryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HourSummaryHandler) WriteResponse(w http.ResponseWriter, r string) {
+func (h *UserSummaryHandler) WriteResponse(w http.ResponseWriter, r string) {
 	fmt.Fprintf(w, r)
 }
