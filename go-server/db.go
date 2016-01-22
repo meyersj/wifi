@@ -67,7 +67,7 @@ func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
 	return records
 }
 
-func (c *DBClient) HourSummary(mac string, tstamp int64) []*Bucket5DAO {
+func (c *DBClient) HourlySummary(mac string, tstamp int64) []*Bucket5DAO {
 	var b *Bucket5DAO
 	records := []*Bucket5DAO{}
 
@@ -88,6 +88,35 @@ func (c *DBClient) HourSummary(mac string, tstamp int64) []*Bucket5DAO {
 	for rows.Next() {
 		b = &Bucket5DAO{}
 		err := rows.Scan(&b.Bucket, &b.Mac, &b.AvgSignal, &b.PingCount)
+		if err != nil {
+			log.Fatal(err)
+		}
+		records = append(records, b)
+	}
+	return records
+}
+
+func (c *DBClient) DailySummary(mac string, tstamp int64) []*HourlyDAO {
+	var b *HourlyDAO
+	records := []*HourlyDAO{}
+
+	query := "SELECT hour, mac, avg_signal, bucket5_count " +
+		"FROM data.hourly " +
+		"WHERE " +
+		"	mac = $1 AND " +
+		"	hour >= $2 " +
+		"ORDER BY hour"
+
+	rows, err := c.DB.Query(query, mac, tstamp)
+	if err != nil {
+		log.Println("failed to query database\n", query)
+		log.Fatal(err)
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		b = &HourlyDAO{}
+		err := rows.Scan(&b.Hour, &b.Mac, &b.AvgSignal, &b.Bucket5Count)
 		if err != nil {
 			log.Fatal(err)
 		}
