@@ -83,9 +83,10 @@ var scales = {};
 var active = null;
 var legend;
 var devices = {};
+//var base_url = "http://127.0.0.1:8005";
 var base_url = "http://explore.meyersj.com:8005";
 var query_endpoint = base_url + "/query";
-var hour_endpoint = base_url + "/hour";
+var summary_endpoint = base_url + "/user/summary";
 
 $(document).ready(function() {
     w = $("#visual").outerWidth();
@@ -136,9 +137,9 @@ function clear_hour_circles() {
 }
 
 function drawHourSummary(mac, data) {
-    var xScale = scaleFactory.hourTime(data.Start)
+    var xScale = scaleFactory.hourTime(data.HourStart)
     var nodes = svg.selectAll(".hour-data-point")
-        .data(data.Data)
+        .data(data.HourData)
         .enter()
         .append("g")
         .attr("class", "hour-data-point")
@@ -164,7 +165,8 @@ function toggleHourSummary(d) {
     var cache = hourDataCache.get(d.Mac);
     if (cache == null) {
         // download and update cache
-        $.getJSON(hour_endpoint, {mac:d.Mac}, function(data) {
+        $.getJSON(summary_endpoint, {mac:d.Mac}, function(data) {
+            //console.log(data);
             hourDataCache.put(d.Mac, data, 360);
             drawHourSummary(d.Mac, data)
         });
