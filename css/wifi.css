@@ -17,6 +17,10 @@ text.time-legend {
     text-anchor: start;
 }
 
+.user-summary-legend {
+    text-anchor: middle;
+}
+
 /*
 .node text {
     text-anchor: end;
