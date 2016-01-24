@@ -17,10 +17,10 @@ Legend.prototype = {
         var VOFF = 20; 
         var labels = [
             [UL[0], UL[1] - VOFF, "-60 min"],
-            [(UR[0] - UL[0]) / 2, UL[1] - VOFF, "-30 min"],
+            [(UR[0] - UL[0]) / 2 + 50, UL[1] - VOFF, "-30 min"],
             [UR[0], UR[1] - VOFF, "Current"],
             [BL[0], BL[1] + VOFF + 10, "-24 hr"],
-            [(BR[0] - BL[0]) / 2, BL[1] + VOFF + 10, "-12 hr"],
+            [(BR[0] - BL[0]) / 2 + 50, BL[1] + VOFF + 10, "-12 hr"],
             [BR[0], BR[1] + VOFF + 10, "Current"],
         ];
         // [x, y]
