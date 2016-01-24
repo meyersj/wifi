@@ -3,6 +3,11 @@ CREATE SCHEMA data;
 
 SET search_path = data;
 
+CREATE TABLE manuf (
+    prefix varchar PRIMARY KEY,
+    manuf varchar
+);
+
 CREATE TABLE packets (
     id serial PRIMARY KEY,
     arrival numeric,
