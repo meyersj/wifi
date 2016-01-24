@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="js/newrelic.js"></script>
     <title>Raspberry WiFi Listener Visualization</title>
     <link
         href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"
@@ -134,11 +135,9 @@ function clear_hour_circles() {
     var nodes = svg.selectAll(".hour-data-point");
     nodes.selectAll(".hour-data-point").selectAll("*").remove();
     nodes.remove();
-
     nodes = svg.selectAll(".daily-data-point");
     nodes.selectAll(".daily-data-point").selectAll("*").remove();
     nodes.remove();
-
 }
 
 function drawUserSummary(mac, data) {
