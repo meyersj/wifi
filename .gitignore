@@ -1,7 +1,4 @@
 *.*~
 *.*.swp
-server/env/*
 sensor/env/*
-
-server.ini
 newrelic.ini
