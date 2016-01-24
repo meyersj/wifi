@@ -5,6 +5,7 @@ import threading
 from wifi_pb2 import Payload
 from Handler import IHandler
 
+from . import agent, application
 
 class Handler(IHandler):
 
@@ -31,6 +32,15 @@ class Handler(IHandler):
     def send(self):
         if not self.data:
             return
+        # if using newrelic run HTTP request inside monitoring task
+        if agent and application:
+            args = dict(name="POST-Payload", group="WiFi-Pi")
+            with agent.BackgroundTask(application, **args):
+                self.__send()
+        else:
+            self.__send()
+
+    def __send(self):
         # construct payload
         payload = Payload()
         payload.location = "location"
