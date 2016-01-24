@@ -1,7 +1,7 @@
 #!env/bin/python
 
-
 import sys
+
 
 try:
     import conf.config as config
@@ -66,5 +66,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
