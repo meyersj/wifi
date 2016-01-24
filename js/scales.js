@@ -45,5 +45,11 @@ ScaleFactory.prototype = {
         return d3.scale.linear()
             .domain([start, start + HOUR])
             .range([0 + 50, this.w - 50]);
+    },
+    dailyTime: function(start) {
+        var HOUR = 3600;
+        return d3.scale.linear()
+            .domain([start, start + (HOUR * 24)])
+            .range([0 + 50, this.w - 50]);
     }
 }
