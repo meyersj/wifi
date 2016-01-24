@@ -94,7 +94,7 @@ $(document).ready(function() {
     h = window.innerHeight * 0.9;
     svg = canvas("#visual");
     scaleFactory = new ScaleFactory(w, h, window_size);
-    legend = new Legend(svg, scaleFactory);
+    legend = initLegend(svg, scaleFactory); 
     userDataCache = new DataCache();
     buildScales(scaleFactory);
     update();
@@ -140,6 +140,12 @@ function clear_hour_circles() {
     nodes.remove();
 }
 
+function initLegend(svg, scaleFactory) {
+    var legend = new Legend(svg, scaleFactory);
+    legend.drawUserSummaryLegend();
+    return legend
+}
+
 function drawUserSummary(mac, data) {
     drawHourSummary(mac, data);
     drawDailySummary(mac, data);
@@ -166,7 +172,7 @@ function drawHourSummary(mac, data) {
             return xScale(d.Bucket);
         })
         .attr('cy', function(d) {
-            return h - 30;
+            return h - 60;
         });
 }
 
@@ -191,7 +197,7 @@ function drawDailySummary(mac, data) {
             return xScale(d.Hour);
         })
         .attr('cy', function(d) {
-            return h - 60;
+            return h - 30;
         });
 }
 
@@ -214,7 +220,7 @@ function toggleUserSummary(d) {
 function update() {
     $.getJSON(query_endpoint, {"window":window_size}, function(data) {
         legend.drawSignalStrength(w);
-        legend.drawTime(h, data.Start, window_size);
+        legend.drawTime(h, data.Start, window_size);    
         scales.age = scaleFactory.windowAge(data.Start);
         scales.scaleY = scaleFactory.windowTime(data.Start);
         var dataset = merge(devices, data.Start, data.Data);
@@ -270,7 +276,7 @@ function visualize(data) {
             return 0;
         })
         .attr('y', function(d) {
-            return h;
+            return 20;
         })
         .text(function(d) { return "Device: " + d.Mac; });
     
