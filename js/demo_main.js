@@ -24,10 +24,11 @@ $(window).resize(function(e) {
 function initialize() {
     clearInterval(polling);
     var navHeight = $("#main-navbar").height();
+    var headerHeight = $("#header-row").height();
     var windowHeight = window.innerHeight;
     w = $("#visual").outerWidth();
-    var heightOffset = windowHeight > 400 ? 50 + navHeight : 20 + navHeight;
-    h = windowHeight - heightOffset;
+    var heightOffset = windowHeight > 400 ? 50 : 20;
+    h = windowHeight - (heightOffset + navHeight + headerHeight);
     svg = canvas("#visual");
     scaleFactory = new ScaleFactory(w, h, window_size);
     legend = initLegend(svg, scaleFactory); 

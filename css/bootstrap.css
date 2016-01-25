@@ -5,21 +5,20 @@ body {
 .content-container {
     padding-left: 50px;
     padding-right: 50px;
-    padding-top: 20px;
-    padding-bottom: 20px;
+}
+
+.content-top {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.content-bottom {
+    padding-bottom: 5px;
 }
 
 @media (max-width: 768px) {
     .content-container {
         padding-left: 0px;
         padding-right: 0px;
-    }
-}
-
-@media (max-height: 400px) {
-    .content-container {
-        padding-top: 5px;
-        padding-bottom: 5px;
-
     }
 }
