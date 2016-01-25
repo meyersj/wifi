@@ -4,7 +4,7 @@ Setting up Raspberry Pi Sensor
 ## Running
 
 ```bash
-# after following setup sets
+# after following Setup steps
 sudo wifi/sensor/bin/start_monitoring.sh
 wifi/sensor/env/bin/python wifi/sensor/runner.py
 ```
