@@ -1,20 +1,19 @@
 Setting up Raspberry Pi Sensor
-==========
+==============================
 
 ## Running
 
 ```bash
 # after following Setup steps
-sudo wifi/sensor/bin/start_monitoring.sh
-wifi/sensor/env/bin/python wifi/sensor/runner.py
+sudo ./bin/start_monitoring.sh
+./env/bin/python runner.py
 ```
-`wifi/sensor/bin/wifimonitor_init` contains an `init.d`
-daemon script used to run the sensor as a service.
-The `dir` and `user` variables will need to be set.
+`bin/wifimonitor_init` contains an `init.d` daemon script used to run the sensor as a service.
+The `dir` and `user` variables will muse be set to match your system.
 
-Once set then copy file to `/etc/init.d`
+Once configured, copy file to `/etc/init.d`
 ```bash
-sudo cp wifi/sensor/bin/wifimonitor_init /etc/init.d/wifimon
+sudo cp ./bin/wifimonitor_init /etc/init.d/wifimon
 
 # start the server
 sudo service wifimon start
@@ -23,7 +22,8 @@ sudo service wifimon start
 ## Setup
 
 #### 1. Execute `setup.sh` script to setup virtual environment.
-Must have `virtualenv` installed
+
+Must have Python's `virtualenv` installed
 ```bash
 ./setup.sh
 ```
@@ -35,7 +35,7 @@ sudo apt-get install git python-dev python-virtualenv libxml2-dev libxslt-dev \
     libssl-dev tshark
 ```
 
-#### 3. Setup permissions to user `tshark`
+#### 3. Setup permissions for using `tshark`
 If running the sensor as someone different than `${USER}` you must run these
 commands for it also.
 ```bash
