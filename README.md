@@ -43,3 +43,7 @@ data is used for answering queries
 Once `go-server` and `sensor` applications or both running and communicating succesfully with the database
 you can follow directions in `analyzer/CRON_EXAMPLE` for example entries that should be added to a crontab to
 run the aggregate scripts. You will need to correct to path to the scripts.
+
+#### gh-pages branch
+Contains D3 Live Demo visualization, hosted at http://meyersj.github.io/wifi
+
