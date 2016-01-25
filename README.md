@@ -25,16 +25,16 @@ Contains protocol buffer definitions used for serialization of data
 sent between the Pi and web server.
  - **build.sh** Execute this to rebuild **wifi_pb2.py** and **wifi.pb.go** if you make changes to **wifi.proto**
 
-#### sensor
-This folder contains all the client code that is running on the sensor.
-There is a [README](https://github.com/meyersj/wifi/blob/master/sensor/README.md)
-in this folder that covers setting up and running the sensor code.
-
 #### go-server
 Contains the `sql` scripts to build a PostgreSQL database and `go-server` application to handle API requests
 from Raspberry Pi and from web-clients.
 There is a [README](https://github.com/meyersj/wifi/blob/master/go-server/README.md)
 for getting it setup and running.
+
+#### sensor
+This folder contains all the client code that is running on the sensor.
+There is a [README](https://github.com/meyersj/wifi/blob/master/sensor/README.md)
+in this folder that covers setting up and running the sensor code.
 
 #### analyzer
 Simple python and psql script to bin data into `5 min`, `hour`, `day` and `week` buckets. This aggregate
