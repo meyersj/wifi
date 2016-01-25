@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="Raspberry Pi WiFi sensor used for analytics of nearby devices as proxy for nearby people. D3 packet analysis visualization.">
+    <meta name="author" content="Jeffrey Meyers">
+    <title>WiFi-Pi Sensor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <script src="js/newrelic.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="about.html">WiFi-Pi Sensor</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="index.html">Live Demo</a></li>
+            <li class="active"><a href="about.html">About</a></li>
+            <li><a href="https://github.com/meyersj/wifi">GitHub Repo</a></li>
+        </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 main">
+          <h1>About the Project</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-6 main">
+          <h3>Live Demo Description</h3>
+          <p>
+          Active WiFi devices around my apartment in the last 10 minutes.
+          </p>
+          <p>
+          Each circle represents a unique device. The X-axis represents average
+          signal strength and the Y-axis represents the last 10 minutes.
+          As devices age they move towards the bottom of the screen,
+          unless a new packet is received
+          </p>
+          <p>
+          Hovering over a device will show a summary of its past
+          hour of activity at the bottom of the screen.
+          Each circle represents data from a 5 minute interval.
+          </p>
+          <a href="demo.html" class="btn btn-primary btn-lg">View Demo</a>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-6 main">
+          <h3>Stack Overview</h3>
+          <p>
+          A Raspberry Pi in my apartment with a WiFi card running
+          in monitor mode that can receive packets from all sources.
+          </p>
+          <p>
+          A Python daemon actively listens for packets stripping the headers.
+          Every few seconds a payload is constructed from the collected headers
+          and serialized using Protocol buffers. The payload is POSTed to a
+          server running an API written in Go.
+          </p>
+          <p>
+          The server will deserialize the payload and insert the headers into a
+          Postgres instance. Some cron jobs run in [5 min, hourly, daily, weekly]
+          intervals to aggregate the data.
+          </p>
+          <a href="https://github.com/meyersj/wifi"
+             class="btn btn-primary btn-lg">Checkout Source</a>
+      </div>
+      </div>
+    </div><!-- /.container -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>  
+  </body>
+</html>
