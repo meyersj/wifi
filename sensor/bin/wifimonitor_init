@@ -14,7 +14,7 @@
 # set dir to path of sensor folder inside repo
 dir="/home/jeff/wifi-repo/sensor"
 user="jeff"
-cmd="bin/newrelic_runner.sh"
+cmd="./runner.py"
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
