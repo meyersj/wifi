@@ -27,6 +27,7 @@ Must have `virtualenv` installed
 ```bash
 ./setup.sh
 ```
+After running, open up `conf/config.py` and set the parameters to correct values.
 
 #### 2. Install required system packages
 ```bash
