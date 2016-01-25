@@ -37,7 +37,7 @@ There is a [README](https://github.com/meyersj/wifi/blob/master/sensor/README.md
 in this folder that covers setting up and running the sensor code.
 
 #### analyzer
-Simple python and psql script to bin data into `5 min`, `hour`, `day` and `week` buckets. This aggregate
+Simple python and psql script to bin data into `5 min`, `hour`, `day` and `week` buckets. This aggregated
 data is used for answering queries
 
 Once `go-server` and `sensor` applications or both running and communicating succesfully with the database
