@@ -1,6 +1,6 @@
 ## WiFi Device Activity
 
-
+[Live Demo](http://meyersj.github.io/wifi)
 
 ### Summary
 
