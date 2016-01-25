@@ -43,49 +43,68 @@
 
     <div class="container-fluid">
       <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12 main">
-          <h1>About the Project</h1>
+        <div class="col-xs-12 col-sm-12 col-md-12">
+          <h1>About the Project</h1>  
         </div>
       </div>
       <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-6 main">
-          <h3>Live Demo Description</h3>
+              </div>
+      <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+          <h3>Description</h3>
           <p>
-          Active WiFi devices around my apartment in the last 10 minutes.
+          Raspberry Pi listening for WiFi probe requests from devices. The MAC
+          address is retrieved from each packet and stored along with signal
+          strength. These headers are collected and sent to the server over HTTP
+          every 5 seconds.
           </p>
-          <p>
-          Each circle represents a unique device. The X-axis represents average
-          signal strength and the Y-axis represents the last 10 minutes.
-          As devices age they move towards the bottom of the screen,
-          unless a new packet is received
-          </p>
-          <p>
-          Hovering over a device will show a summary of its past
-          hour of activity at the bottom of the screen.
-          Each circle represents data from a 5 minute interval.
-          </p>
-          <a href="index.html" class="btn btn-primary btn-lg">View Demo</a>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-md-6 main">
-          <h3>Stack Overview</h3>
-          <p>
-          A Raspberry Pi in my apartment with a WiFi card running
-          in monitor mode that can receive packets from all sources.
-          </p>
-          <p>
-          A Python daemon actively listens for packets stripping the headers.
-          Every few seconds a payload is constructed from the collected headers
-          and serialized using Protocol buffers. The payload is POSTed to a
-          server running an API written in Go.
-          </p>
-          <p>
-          The server will deserialize the payload and insert the headers into a
-          Postgres instance. Some cron jobs run in [5 min, hourly, daily, weekly]
-          intervals to aggregate the data.
-          </p>
+          <a href="index.html" class="btn btn-primary btn-md">View Demo</a>
           <a href="https://github.com/meyersj/wifi"
-             class="btn btn-primary btn-lg">Checkout Source</a>
-      </div>
+             class="btn btn-primary btn-md">Checkout Source</a>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+          <h3>Overview</h3>  
+          <ul class="list-group">
+              <li class="list-group-item">Track and monitor nearby activity</li>
+              <li class="list-group-item">
+                    Passively listening for WiFi packets from nearby devices
+              </li>
+              <li class="list-group-item">
+                    Devices send <strong>probe requests</strong> when WiFi is enabled
+              </li>
+              <li class="list-group-item">
+                    Listen for <strong>probe requests</strong> and store
+                    <em>timstamp</em> and <em>MAC</em> to track device across visits
+              </li>
+              <li class="list-group-item">
+                    Store data in database and aggregate in
+                    <em>5 min</em>,
+                    <em>hour</em>,
+                    <em>day</em> and
+                    <em>week</em> intervals
+              </li>
+              <li class="list-group-item">
+                    Display visualization showing active devices and summary of
+                    recent activity
+              </li>
+          </ul>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+          <h3>Stack</h3>  
+          <ul class="list-group">
+              <li class="list-group-item">Raspberry Pi 2 Model B Sensor</li>
+              <li class="list-group-item">Atheros AR9271 USB WiFi chipset</li>     
+              <li class="list-group-item">
+                    Python daemon running on Pi using <code>tshark</code> and
+                    <code>aircrack-ng</code> with <code>pyshark</code >wrapper
+              </li>
+              <li class="list-group-item">
+                    Web-services written in Go to accept requests from Raspberry Pi
+              </li>
+              <li class="list-group-item">PostgreSQL datastore</li>
+              <li class="list-group-item">D3 Visualizations</li>
+          </ul>
+        </div>
       </div>
     </div><!-- /.container -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
