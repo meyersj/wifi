@@ -7,7 +7,7 @@ var active = null;
 var legend;
 var devices = {};
 //var base_url = "http://127.0.0.1:8005";
-var base_url = "http://explore.meyersj.com:8005";
+var base_url = "https://explore.meyersj.com:8005";
 var query_endpoint = base_url + "/query";
 var summary_endpoint = base_url + "/user/summary";
 var polling = null;
