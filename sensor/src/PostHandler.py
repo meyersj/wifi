@@ -34,7 +34,7 @@ class Handler(IHandler):
             return
         # if using newrelic run HTTP request inside monitoring task
         if agent and application:
-            args = dict(name="POST-Payload", group="WiFi-Pi")
+            args = dict(name="SendPayload", group="Task")
             with agent.BackgroundTask(application, **args):
                 self.__send()
         else:
