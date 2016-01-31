@@ -9,8 +9,13 @@ func StartServer(c *Config) {
 	db := InitDBClient(c.Postgres)
 	AttachHandlers(db)
 	port := ":" + c.Port
-	log.Println("Starting server at 127.0.0.1" + port)
-	log.Fatal(http.ListenAndServe(port, nil))
+	if c.Cert != "" && c.Key != "" {
+		log.Println("Starting SECURE server at 127.0.0.1" + port)
+		log.Fatal(http.ListenAndServeTLS(port, c.Cert, c.Key, nil))
+	} else {
+		log.Println("Starting server at 127.0.0.1" + port)
+		log.Fatal(http.ListenAndServe(port, nil))
+	}
 }
 
 func AttachHandlers(db *DBClient) {

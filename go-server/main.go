@@ -9,6 +9,8 @@ import (
 type Config struct {
 	Port     string
 	Postgres string
+	Cert     string
+        Key      string
 	NewRelic string
 }
 
@@ -25,7 +27,7 @@ func main() {
 	conf := ReadConfig("config.toml")
 	if conf.NewRelic != "" {
 		agent := gorelic.NewAgent()
-		agent.Verbose = true
+		//agent.Verbose = true
 		agent.NewrelicLicense = conf.NewRelic
 		agent.Run()
 	}
