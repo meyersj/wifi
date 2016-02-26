@@ -1,7 +1,5 @@
 ## WiFi Device Activity
 
-[Live Demo](http://meyersj.github.io/wifi)
-
 ### Summary
 
 This project contains code used to monitor Wifi activity with a Raspberry Pi.
@@ -40,9 +38,9 @@ in this folder that covers setting up and running the sensor code.
 Simple python and psql script to bin data into `5 min`, `hour`, `day` and `week` buckets. This aggregated
 data is used for answering queries
 
-Once `go-server` and `sensor` applications or both running and communicating succesfully with the database
+Once `go-server` and `sensor` applications are both running and communicating succesfully with the database
 you can follow directions in `analyzer/CRON_EXAMPLE` for example entries that should be added to a crontab to
-run the aggregate scripts. You will need to correct to path to the scripts.
+run the aggregater scripts. You will need to correct the path to the scripts.
 
 #### gh-pages branch
 Contains D3 Live Demo visualization, hosted at http://meyersj.github.io/wifi
