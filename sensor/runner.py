@@ -1,7 +1,4 @@
-#!env/bin/python
-
 import sys
-
 
 try:
     import conf.config as config
@@ -23,10 +20,10 @@ except Exception as e:
     sys.exit(1)
 
 
-from src.Listener import Listener
-#from src.Handler import Handler
-from src.PostHandler import Handler
-from src.Constants import Frames
+from listener import Listener
+#from handler import Handler
+from handler import PostHandler as Handler
+from constants import Frames
 
 
 EXCLUDE_MACS  = [config.sensor_mac]
