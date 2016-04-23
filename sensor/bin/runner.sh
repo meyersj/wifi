@@ -5,4 +5,4 @@ SCRIPTPATH=`dirname $SCRIPT`
 PARENT=`dirname $SCRIPTPATH`
 
 cd $PARENT
-./env/bin/python ./runner.py
+./env/bin/python src/runner.py
