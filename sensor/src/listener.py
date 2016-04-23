@@ -71,6 +71,13 @@ class Listener(object):
         else: self.handler = None
     
     def start(self):
+        interface = self.config.interface
+        if interface in os.listdir('/sys/class/net/'):
+            self._start()
+        else:
+            print "interface {0} is not currently available.".format(interface)
+
+    def _start(self):
         capture = pyshark.LiveCapture(
             interface=self.config.interface,
             display_filter=self.display_filter,

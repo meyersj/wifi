@@ -3,11 +3,24 @@ import time
 import threading
 
 from wifi_pb2 import Payload
-from Handler import IHandler
 
-from . import agent, application
+
+class IHandler(object):
+   
+    def __init__(self, config):
+        pass
+
+    def handle(self, packet):
+        pass
+
 
 class Handler(IHandler):
+
+    def handle(self, packet):
+        print packet
+
+
+class PostHandler(IHandler):
 
     def __init__(self, config):
         now = float(time.time())
@@ -32,13 +45,7 @@ class Handler(IHandler):
     def send(self):
         if not self.data:
             return
-        # if using newrelic run HTTP request inside monitoring task
-        if agent and application:
-            args = dict(name="SendPayload", group="Task")
-            with agent.BackgroundTask(application, **args):
-                self.__send()
-        else:
-            self.__send()
+        self.__send()
 
     def __send(self):
         # construct payload
