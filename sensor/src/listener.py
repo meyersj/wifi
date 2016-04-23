@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pyshark
 
+from monitor import is_monitoring, start_monitoring
 from wifi_pb2 import Packet
 
 
@@ -69,22 +70,39 @@ class Listener(object):
         self.processor = PacketProcessor()
         if handler: self.handler = handler(config)
         else: self.handler = None
-    
-    def start(self):
-        interface = self.config.interface
-        if interface in os.listdir('/sys/class/net/'):
-            self._start()
-        else:
-            print "interface {0} is not currently available.".format(interface)
 
-    def _start(self):
+    def start(self):
+        while True:
+            # if listener crashes because network card disconnects restart
+            self._listen()
+
+    def _listen(self):
+        # make sure monitoring interface is active
+        self._init_mon_interface()
+        # setup pyshark which provides bindings to tshark
         capture = pyshark.LiveCapture(
             interface=self.config.interface,
             display_filter=self.display_filter,
             bpf_filter=self.bpf_filter
         )
-       
-        # continue sniffing forever
+        # continue sniffing forever (unless we crash)
         for packet in capture.sniff_continuously():
             proto_packet = self.processor.process(packet)
             if self.handler: self.handler.handle(proto_packet)
+
+    def _init_mon_interface(self, delay=5):
+        interface = self.config.interface
+        if not is_monitoring(interface):
+            # try and start monitoring
+            start_monitoring(interface)
+            # if initial start failed, the network card might be in the process
+            # of reconnecting so wait a little before retrying
+            while not is_monitoring(interface) and delay < 360:
+                time.sleep(delay)
+                delay = delay * 2
+                start_monitoring(interface)
+        # check if we were succesful at starting to monitor interface
+        if not is_monitoring(interface):
+            print "interface {0} is not currently available.".format(interface)
+            sys.exit(1)
+
