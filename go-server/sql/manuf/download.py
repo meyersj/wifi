@@ -1,4 +1,4 @@
-import csv
+import unicodecsv as csv
 
 import requests
 
@@ -21,9 +21,13 @@ def runner(endpoint, output):
                 if len(prefix) == 8 and manuf:
                     try:
                         writer.writerow([prefix, manuf])
-                    except:
+                    except Exception as e:
+			print e
                         pass
-
+	        else:
+                    print prefix, manuf
+            else:
+                print fields
 
 def main():
     runner(oui_database, csv_output)
