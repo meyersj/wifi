@@ -5,4 +5,4 @@ SCRIPTPATH=`dirname $SCRIPT`
 PARENT=`dirname $SCRIPTPATH`
 
 cd $PARENT
-./env/bin/newrelic-admin run-program ./runner.py
+./env/bin/python ./runner.py
