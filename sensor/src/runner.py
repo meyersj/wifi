@@ -34,7 +34,11 @@ INCLUDE_FRAME_TYPES   = [
     Frames.ASSOCIATION_REQUEST,
     Frames.ASSOCIATION_RESPONSE,
     Frames.REASSOCIATION_REQUEST,
-    Frames.PROBE_REQUEST
+    Frames.PROBE_REQUEST,
+    Frames.PROBE_RESPONSE,
+    Frames.BEACON,
+    Frames.DATA,
+    Frames.QOS_DATA
 ]
 
 
