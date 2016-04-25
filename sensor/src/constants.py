@@ -1,11 +1,11 @@
 class Frames(object):
 
-    ASSOCIATION_REQUEST = "0x00"
-    ASSOCIATION_RESPONSE = "0x01"
-    REASSOCIATION_REQUEST = "0x02"
-    REASSOCIATION_RESPONSE = "0x03"
-    PROBE_REQUEST = "0x04"
-    PROBE_RESPONSE = "0x05"
-    BEACON = "0x08"
-    DATA = "0x20"
-    QOS_DATA = "0x28"
+    ASSOCIATION_REQUEST = "0x00"            # device
+    ASSOCIATION_RESPONSE = "0x01"           # AP
+    REASSOCIATION_REQUEST = "0x02"          # device
+    REASSOCIATION_RESPONSE = "0x03"         # AP
+    PROBE_REQUEST = "0x04"                  # device
+    PROBE_RESPONSE = "0x05"                 # AP
+    BEACON = "0x08"                         # AP
+    DATA = "0x20"                           # device | AP
+    QOS_DATA = "0x28"                       # device | AP
