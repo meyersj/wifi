@@ -119,4 +119,3 @@ class Listener(object):
         if not is_monitoring(interface):
             logger.error("interface {0} is not currently available.".format(interface))
             sys.exit(1)
-
