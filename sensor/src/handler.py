@@ -1,8 +1,12 @@
 import requests
 import time
 import threading
+import logging
 
 from wifi_pb2 import Payload
+
+
+logger = logging.getLogger('wifi')
 
 
 class IHandler(object):
@@ -72,11 +76,12 @@ class PostHandler(IHandler):
             verify=False,
             timeout=5
         )
-        print "STATUS CODE: " + str(response.status_code)
+        logger.debug("status code: {0}".format(response.status_code))
 
     def flush(self, now):
-        if now < self.payload_timer: return
-        print "FLUSHING: ", len(self.data)
+        if now < self.payload_timer:
+            return
+        logger.info("flusing {0} records".format(len(self.data)))
         self.send()
         self.payload_timer = float(time.time()) + self.config.payload_timer
         new_distinct = {} 
