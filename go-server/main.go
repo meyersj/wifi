@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/yvasiyarov/gorelic"
 	"log"
 )
 
@@ -10,8 +9,7 @@ type Config struct {
 	Port     string
 	Postgres string
 	Cert     string
-        Key      string
-	NewRelic string
+	Key      string
 }
 
 func ReadConfig(filename string) *Config {
@@ -25,11 +23,5 @@ func ReadConfig(filename string) *Config {
 
 func main() {
 	conf := ReadConfig("config.toml")
-	if conf.NewRelic != "" {
-		agent := gorelic.NewAgent()
-		//agent.Verbose = true
-		agent.NewrelicLicense = conf.NewRelic
-		agent.Run()
-	}
 	StartServer(conf)
 }
