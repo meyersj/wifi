@@ -2,19 +2,20 @@ import sys
 import os
 import logging
 
+# setup logging
+FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger('wifi')
+
 parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, parent)
-
-
 try:
     import conf.config as config
     if config.sensor_mac == "XX:XX:XX:XX:XX:XX":
-        logging.error(
-            "Failed to set config variable `sensor_mac` in `conf/config.py`"
-        )
+        logger.error("Failed to set config variable 'sensor_mac' in conf/config.py")
         sys.exit(2)
 except Exception as e:
-    logging.error("Failed to import `conf/config.py`")
+    logger.error("Failed to import config file at conf/config.py")
     sys.exit(1)
 
 
@@ -52,6 +53,9 @@ def main():
     exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
     
+    logging.info("listening for fram subtypes: {0}".format(INCLUDE_FRAME_TYPES))
+    logging.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
+
     # create listener object with an associated handler 
     listener = Listener(
         config=config,
