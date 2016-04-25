@@ -27,16 +27,12 @@ func InitDBClient(uri string) *DBClient {
 }
 
 func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
-
 	var src_manuf, dest_manuf string
+	manuf_query := "SELECT manuf FROM data.manuf WHERE prefix = $1"
 	src_prefix := strings.ToUpper(string(*p.Source)[0:8])
 	dest_prefix := strings.ToUpper(string(*p.Destination)[0:8])
-	c.DB.QueryRow(
-		"SELECT manuf FROM data.manuf WHERE prefix = $1", src_prefix,
-	).Scan(&src_manuf)
-	c.DB.QueryRow(
-		"SELECT manuf FROM data.manuf WHERE prefix = $1", dest_prefix,
-	).Scan(&dest_manuf)
+	c.DB.QueryRow(manuf_query, src_prefix).Scan(&src_manuf)
+	c.DB.QueryRow(manuf_query, dest_prefix).Scan(&dest_manuf)
 
 	stmt := "INSERT INTO data.packets " +
 		"(arrival, subtype, src, src_manuf, dest, dest_manuf, freq, signal) " +
