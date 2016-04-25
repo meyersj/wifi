@@ -100,7 +100,7 @@ class Listener(object):
         for packet in capture.sniff_continuously():
             now = float(time.time())
             arrival = float(packet.frame_info.get_field_value("time_epoch"))
-            logger.info("default {0}".format(now - arrival))
+            logger.debug("default {0}".format(now - arrival))
             proto_packet = self.processor.process(packet)
             if self.handler: self.handler.handle(proto_packet)
 
@@ -147,12 +147,12 @@ class SleepListener(Listener):
         # continue sniffing forever (unless we crash)
         start = time.time()
         for packet in capture.sniff_continuously():
-            if int(time.time()) - start > 30:
-                time.sleep(random.randrange(5, 10, 1))
+            if int(time.time()) - start > 10:
+                time.sleep(random.randrange(10, 20, 1))
                 break
             now = float(time.time())
             arrival = float(packet.frame_info.get_field_value("time_epoch"))
-            logger.info("data {0}".format(now - arrival))
+            logger.debug("data {0}".format(now - arrival))
             proto_packet = self.processor.process(packet)
             if self.handler:
                 self.handler.handle(proto_packet)
