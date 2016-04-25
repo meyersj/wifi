@@ -9,22 +9,16 @@ from wifi_pb2 import Payload
 logger = logging.getLogger('wifi')
 
 
-class IHandler(object):
-   
+class Handler(object):
+    
     def __init__(self, config):
         pass
-
-    def handle(self, packet):
-        pass
-
-
-class Handler(IHandler):
 
     def handle(self, packet):
         print packet
 
 
-class PostHandler(IHandler):
+class PostHandler(Handler):
 
     def __init__(self, config):
         now = float(time.time())
