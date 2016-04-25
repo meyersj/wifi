@@ -1,25 +1,20 @@
 import sys
 import os
+import logging
 
 parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, parent)
+
+
 try:
     import conf.config as config
     if config.sensor_mac == "XX:XX:XX:XX:XX:XX":
-        print
-        print "Failed to set config variable `sensor_mac`"
-        print " - run `ifconfig` to find mac address of wifi chip"
-        print " - set `sensor_mac` in `conf/config.py`"
-        print
+        logging.error(
+            "Failed to set config variable `sensor_mac` in `conf/config.py`"
+        )
         sys.exit(2)
 except Exception as e:
-    print
-    print e
-    print
-    print "Failed to import `conf/config.py`"
-    print " - copy `conf/sample-config.py` to `conf/config.py`"
-    print " - set config variables to correct values"
-    print
+    logging.error("Failed to import `conf/config.py`")
     sys.exit(1)
 
 
