@@ -2,10 +2,14 @@ import sys
 import os
 import logging
 
+
 # setup logging
 FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger('wifi')
+logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
+
 
 parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, parent)
@@ -32,7 +36,7 @@ INCLUDE_FRAME_TYPES   = [
     Frames.REASSOCIATION_REQUEST,
     Frames.PROBE_REQUEST,
     Frames.PROBE_RESPONSE,
-    Frames.BEACON,
+    #Frames.BEACON,
     Frames.DATA,
     Frames.QOS_DATA
 ]
@@ -53,8 +57,8 @@ def main():
     exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
     
-    logging.info("listening for fram subtypes: {0}".format(INCLUDE_FRAME_TYPES))
-    logging.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
+    logger.info("filtering for frame subtypes: {0}".format(INCLUDE_FRAME_TYPES))
+    logger.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
 
     # create listener object with an associated handler 
     listener = Listener(
