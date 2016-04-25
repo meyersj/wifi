@@ -54,7 +54,6 @@ func (p *PacketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		for i := 0; i < len(payload.Data); i++ {
-			//log.Println(payload.Data[i])
 			p.Db.InsertPacket(payload.Data[i])
 		}
 		res.Success = true
