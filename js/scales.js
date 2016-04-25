@@ -33,8 +33,8 @@ ScaleFactory.prototype = {
     // RADIUS
     hourPingRate: function() {
         var MAX_PING_PER_HOUR = 12;
-        var MIN_RADIUS = 5;
-        var MAX_RADIUS = 15;
+        var MIN_RADIUS = 7;
+        var MAX_RADIUS = 7; //15;
         return d3.scale.linear()
             .domain([1, MAX_PING_PER_HOUR])
             .range([MIN_RADIUS, MAX_RADIUS]);
