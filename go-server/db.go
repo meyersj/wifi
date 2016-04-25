@@ -34,7 +34,8 @@ func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
 	c.DB.QueryRow(manuf_query, src_prefix).Scan(&src_manuf)
 	c.DB.QueryRow(manuf_query, dest_prefix).Scan(&dest_manuf)
 
-	stmt := "INSERT INTO data.packets " +
+	stmt := "" +
+		"INSERT INTO data.packets " +
 		"(arrival, subtype, src, src_manuf, dest, dest_manuf, freq, signal) " +
 		"VALUES " +
 		"($1, $2, $3, $4, $5, $6, $7, $8)"
@@ -54,7 +55,8 @@ func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
 	var r *wifiproto.Packet
 	records := []*wifiproto.Packet{}
 
-	query := "SELECT arrival, subtype, src, signal " +
+	query := "" +
+		"SELECT arrival, subtype, src, signal " +
 		"FROM data.packets " +
 		"WHERE signal IS NOT NULL AND arrival > $1 " +
 		"ORDER BY src, arrival DESC"
@@ -73,7 +75,6 @@ func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
 			log.Fatal(err)
 		}
 		records = append(records, r)
-
 	}
 	return records
 }
