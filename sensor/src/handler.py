@@ -67,7 +67,7 @@ class PostHandler(Handler):
             self.config.endpoint,
             data=payload,
             headers=headers,
-            verify=False,
+            verify=True,
             timeout=5
         )
         logger.debug("status code: {0}".format(response.status_code))
