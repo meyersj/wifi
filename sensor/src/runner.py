@@ -1,7 +1,7 @@
 import sys
 import os
 import logging
-
+from multiprocessing import Process
 
 # setup logging
 FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
@@ -23,20 +23,23 @@ except Exception as e:
     sys.exit(1)
 
 
-from listener import Listener
+from listener import Listener, SleepListener
 #from handler import Handler
 from handler import PostHandler as Handler
 from constants import Frames
 
 
 EXCLUDE_MACS  = [config.sensor_mac]
-INCLUDE_FRAME_TYPES   = [
+DEFAULT_FRAME_TYPES   = [
     Frames.ASSOCIATION_REQUEST,
     Frames.ASSOCIATION_RESPONSE,
+    Frames.REASSOCIATION_RESPONSE,
     Frames.REASSOCIATION_REQUEST,
     Frames.PROBE_REQUEST,
     Frames.PROBE_RESPONSE,
-    #Frames.BEACON,
+]
+
+DATA_FRAME_TYPES = [
     Frames.DATA,
     Frames.QOS_DATA
 ]
@@ -48,27 +51,44 @@ def construct_filter_expr(expr, joiner, iterable):
     else: return joiner.join([expr.format(text) for text in iterable])
 
 
-def main():
-    # build filter for packet frame types to pass through
-    # and a filter to ignore frames from sensor
-    subtype_expr = "wlan.fc.type_subtype == {0}"
+def build_filter(include_frames, exclude_mac):
     exclude_expr = "wlan.sa != {0}"
-    subtype = construct_filter_expr(subtype_expr, " || ", INCLUDE_FRAME_TYPES)
-    exclude = construct_filter_expr(exclude_expr, " && ", EXCLUDE_MACS)
+    subtype_expr = "wlan.fc.type_subtype == {0}"
+    # construct expressions
+    exclude = construct_filter_expr(exclude_expr, " && ", exclude_mac)
+    subtype = construct_filter_expr(subtype_expr, " || ", include_frames)
     display_filter = "({0}) && ({1})".format(subtype, exclude)
-    
-    logger.info("filtering for frame subtypes: {0}".format(INCLUDE_FRAME_TYPES))
+    return display_filter
+
+def main():
     logger.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
 
-    # create listener object with an associated handler 
-    listener = Listener(
+    # create SleepListener listens for data frames for short intervals
+    # to prevent those frames from taking over resources
+    # this 
+    display_filter = build_filter(DATA_FRAME_TYPES, EXCLUDE_MACS)
+    logger.info("filtering for frame subtypes: {0}".format(display_filter))
+    data_listener = SleepListener(
         config=config,
         display_filter=display_filter,
         handler=Handler
     )
+    
+    # start sniffing for data frames in background process
+    process = Process(target=data_listener.start)
+    process.start()
 
-    # start sniffing for packets
-    listener.start()
+    # create Listener object with correct filter and handler
+    display_filter = build_filter(DEFAULT_FRAME_TYPES, EXCLUDE_MACS)
+    logger.info("filtering for frame subtypes: {0}".format(display_filter))
+    default_listener = Listener(
+        config=config,
+        display_filter=display_filter,
+        handler=Handler
+    )
+    
+    # start sniffing for probe requests/response frames
+    default_listener.start()
 
 
 if __name__ == '__main__':

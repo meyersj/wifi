@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import logging
+import random
 from uuid import uuid1
 from datetime import datetime
 
@@ -97,6 +98,9 @@ class Listener(object):
         )
         # continue sniffing forever (unless we crash)
         for packet in capture.sniff_continuously():
+            now = float(time.time())
+            arrival = float(packet.frame_info.get_field_value("time_epoch"))
+            logger.info("default {0}".format(now - arrival))
             proto_packet = self.processor.process(packet)
             if self.handler: self.handler.handle(proto_packet)
 
@@ -119,3 +123,36 @@ class Listener(object):
         if not is_monitoring(interface):
             logger.error("interface {0} is not currently available.".format(interface))
             sys.exit(1)
+
+
+class SleepListener(Listener):
+    """ Listen for data packets (0x20, 0x28) for short intervals then sleep """
+
+    def start(self):
+        logger.info('starting data listener')
+        while True:
+            # if listener crashes because network card disconnects restart
+            self._listen()
+            logger.info('restarting after sleep')
+
+    def _listen(self):
+        # make sure monitoring interface is active
+        self._init_mon_interface()
+        # setup pyshark which provides bindings to tshark
+        capture = pyshark.LiveCapture(
+            interface=self.config.interface,
+            display_filter=self.display_filter,
+            bpf_filter=self.bpf_filter
+        )
+        # continue sniffing forever (unless we crash)
+        start = time.time()
+        for packet in capture.sniff_continuously():
+            if int(time.time()) - start > 30:
+                time.sleep(random.randrange(5, 10, 1))
+                break
+            now = float(time.time())
+            arrival = float(packet.frame_info.get_field_value("time_epoch"))
+            logger.info("data {0}".format(now - arrival))
+            proto_packet = self.processor.process(packet)
+            if self.handler:
+                self.handler.handle(proto_packet)
