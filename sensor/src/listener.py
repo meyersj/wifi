@@ -1,4 +1,7 @@
-import os, sys, time
+import os
+import sys
+import time
+import logging
 from uuid import uuid1
 from datetime import datetime
 
@@ -6,6 +9,10 @@ import pyshark
 
 from monitor import is_monitoring, start_monitoring
 from wifi_pb2 import Packet
+
+
+# grab logger that has already been configured
+logger = logging.getLogger('wifi')
 
 
 def cast(value, new_type):
@@ -26,6 +33,7 @@ class PacketProcessor(object):
         out.subtype = packet.wlan.get_field_value("fc_type_subtype")
         self.fetch_address_data(out, packet)
         self.fetch_meta_data(out, packet) 
+        logger.debug('received packet: {0}'.format(out))
         return out
     
     def fetch_address_data(self, p, packet):
@@ -72,9 +80,11 @@ class Listener(object):
         else: self.handler = None
 
     def start(self):
+        logger.info('starting listener')
         while True:
             # if listener crashes because network card disconnects restart
             self._listen()
+            logger.error('listener stopped unexpectedly, restarting')
 
     def _listen(self):
         # make sure monitoring interface is active
@@ -93,16 +103,20 @@ class Listener(object):
     def _init_mon_interface(self, delay=5):
         interface = self.config.interface
         if not is_monitoring(interface):
+            logger.info('start monitoring on interface {0}'.format(interface))
             # try and start monitoring
             start_monitoring(interface)
             # if initial start failed, the network card might be in the process
             # of reconnecting so wait a little before retrying
             while not is_monitoring(interface) and delay < 360:
+                logger.warn('failed to start, waiting {0}s'.format(delay))
                 time.sleep(delay)
                 delay = delay * 2
+                msg = 'trying to start monitoring on interface {0}'
+                logger.warn(msg.format(interface))
                 start_monitoring(interface)
         # check if we were succesful at starting to monitor interface
         if not is_monitoring(interface):
-            print "interface {0} is not currently available.".format(interface)
+            logger.error("interface {0} is not currently available.".format(interface))
             sys.exit(1)
 
