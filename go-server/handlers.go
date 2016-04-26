@@ -75,6 +75,7 @@ type DeviceSummary struct {
 	LastArrival  float64
 	AvgSignal    int32
 	Count        int32
+	Frames       []string
 }
 
 func InitDeviceSummary(p *wifiproto.Packet) *DeviceSummary {
@@ -84,6 +85,7 @@ func InitDeviceSummary(p *wifiproto.Packet) *DeviceSummary {
 	d.LastArrival = *p.Arrival
 	d.AvgSignal = *p.Signal
 	d.Count = 1
+	d.Frames = []string{}
 	return d
 }
 
@@ -93,6 +95,19 @@ func (d *DeviceSummary) Update(p *wifiproto.Packet) {
 	avg := (d.AvgSignal*d.Count + *p.Signal) / (d.Count + 1)
 	d.Count = d.Count + 1
 	d.AvgSignal = int32(avg)
+	d.Frames = append(d.Frames, *p.Subtype)
+}
+
+func (d *DeviceSummary) DistinctFrames() {
+	distinct_map := make(map[string]bool)
+	distinct := []string{}
+	for i := range d.Frames {
+		distinct_map[d.Frames[i]] = true
+	}
+	for key, _ := range distinct_map {
+		distinct = append(distinct, key)
+	}
+	d.Frames = distinct
 }
 
 type QueryResponse struct {
@@ -151,13 +166,13 @@ func (q *QueryHandler) BinRecords(records []*wifiproto.Packet) []*DeviceSummary 
 		if !exists {
 			rec = InitDeviceSummary(records[i])
 			devices[rec.Mac] = rec
-		} else {
-			rec.Update(records[i])
 		}
+		rec.Update(records[i])
 	}
 
 	data := make([]*DeviceSummary, 0, len(devices))
-	for _, value := range devices {
+	for key, value := range devices {
+		devices[key].DistinctFrames()
 		data = append(data, value)
 	}
 	return data
@@ -176,13 +191,6 @@ type HourlyDAO struct {
 	AvgSignal    int32
 	Bucket5Count int32
 }
-
-//type DailyDAO struct {
-//	Day       int64
-//	Mac       string
-//	AvgSignal int32
-//	HourCount int32
-//}
 
 type UserSummaryResponse struct {
 	HourStart  int64
