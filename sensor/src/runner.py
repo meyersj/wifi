@@ -1,5 +1,6 @@
 import sys
 import os
+from os.path import dirname, abspath
 import logging
 import time
 from multiprocessing import Process
@@ -12,8 +13,7 @@ logger = logging.getLogger('wifi')
 logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 
-
-parent = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+parent = dirname(dirname(abspath(__file__)))
 sys.path.insert(0, parent)
 try:
     import conf.config as config
