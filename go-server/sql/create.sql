@@ -1,3 +1,5 @@
+BEGIN;
+
 DROP SCHEMA IF EXISTS data CASCADE;
 CREATE SCHEMA data;
 
@@ -62,3 +64,5 @@ CREATE TABLE weekly (
     day_count integer,
     PRIMARY KEY (week, mac)
 );
+
+COMMIT;
