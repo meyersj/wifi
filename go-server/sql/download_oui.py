@@ -3,7 +3,7 @@ import unicodecsv as csv
 import requests
 
 oui_database = "https://code.wireshark.org/review/gitweb?p=wireshark.git;a=blob_plain;f=manuf"
-csv_output = "manuf.csv"
+csv_output = "oui_lookup.csv"
 
 
 def runner(endpoint, output):
@@ -22,12 +22,7 @@ def runner(endpoint, output):
                     try:
                         writer.writerow([prefix, manuf])
                     except Exception as e:
-			print e
                         pass
-	        else:
-                    print prefix, manuf
-            else:
-                print fields
 
 def main():
     runner(oui_database, csv_output)

@@ -8,15 +8,22 @@ CREATE TABLE manuf (
     manuf varchar
 );
 
+CREATE TABLE devices (
+    mac varchar PRIMARY KEY,
+    manuf varchar
+);
+
+CREATE TABLE access_points (
+    mac varchar PRIMARY KEY,
+    manuf varchar
+);
+
 CREATE TABLE packets (
     id serial PRIMARY KEY,
     arrival numeric,
     subtype varchar,
-    ssid varchar,
     src varchar,
-    src_manuf varchar,
     dest varchar,
-    dest_manuf varchar,
     freq integer,
     signal integer
 );
