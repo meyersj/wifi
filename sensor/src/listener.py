@@ -136,8 +136,6 @@ class SleepListener(Listener):
             logger.info('restarting after sleep')
 
     def _listen(self):
-        # make sure monitoring interface is active
-        self._init_mon_interface()
         # setup pyshark which provides bindings to tshark
         capture = pyshark.LiveCapture(
             interface=self.config.interface,

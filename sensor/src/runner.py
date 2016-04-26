@@ -1,7 +1,9 @@
 import sys
 import os
 import logging
+import time
 from multiprocessing import Process
+
 
 # setup logging
 FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
@@ -63,6 +65,23 @@ def build_filter(include_frames, exclude_mac):
 def main():
     logger.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
 
+
+    # create Listener object with correct filter and handler
+    display_filter = build_filter(DEFAULT_FRAME_TYPES, EXCLUDE_MACS)
+    logger.info("filtering for frame subtypes: {0}".format(display_filter))
+    default_listener = Listener(
+        config=config,
+        display_filter=display_filter,
+        handler=Handler
+    )
+    
+    # start sniffing for probe requests/response frames in background process
+    default_process = Process(target=default_listener.start)
+    default_process.start()
+
+    # wait for monitoring to start
+    time.sleep(5)
+
     # create SleepListener listens for data frames for short intervals
     # to prevent those frames from taking over resources
     # this 
@@ -75,20 +94,8 @@ def main():
     )
     
     # start sniffing for data frames in background process
-    process = Process(target=data_listener.start)
-    process.start()
-
-    # create Listener object with correct filter and handler
-    display_filter = build_filter(DEFAULT_FRAME_TYPES, EXCLUDE_MACS)
-    logger.info("filtering for frame subtypes: {0}".format(display_filter))
-    default_listener = Listener(
-        config=config,
-        display_filter=display_filter,
-        handler=Handler
-    )
-    
-    # start sniffing for probe requests/response frames
-    default_listener.start()
+    data_process = Process(target=data_listener.start)
+    data_process.start()
 
 
 if __name__ == '__main__':
