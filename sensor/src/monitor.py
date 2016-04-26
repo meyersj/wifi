@@ -1,5 +1,7 @@
 import subprocess
 import os
+import sys
+import logging
 
 
 def is_monitoring(interface):
@@ -10,4 +12,8 @@ def is_monitoring(interface):
 
 
 def start_monitoring(interface):
-    return subprocess.call(['startmon'])
+    try:
+        return subprocess.call(['startmon'])
+    except OSError:
+        # this envvar will be set in the init.d script if running as a service
+        return subprocess.call([os.path.join(os.getenv('WIFIBIN', ''), 'startmon')])
