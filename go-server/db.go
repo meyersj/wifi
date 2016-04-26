@@ -26,25 +26,53 @@ func InitDBClient(uri string) *DBClient {
 	return &DBClient{DB: db}
 }
 
-func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
-	var src_manuf, dest_manuf string
-	manuf_query := "SELECT manuf FROM data.manuf WHERE prefix = $1"
-	src_prefix := strings.ToUpper(string(*p.Source)[0:8])
-	dest_prefix := strings.ToUpper(string(*p.Destination)[0:8])
-	c.DB.QueryRow(manuf_query, src_prefix).Scan(&src_manuf)
-	c.DB.QueryRow(manuf_query, dest_prefix).Scan(&dest_manuf)
+func (c *DBClient) UpsertPacketTag(subtype string, mac string) {
+	// determine if packet is from device, access point or unknown
+	table := ""
+	manuf := ""
+	switch subtype {
+	case "0x00", "0x02", "0x04":
+		// packet originated from device
+		table = "devices"
+	case "0x01", "0x03", "0x05":
+		// packet originated from access point
+		table = "access_points"
+	case "0x20", "0x28":
+		// exit if packet was data frame
+		return
+	}
 
+	// lookup if record already exists in devices or access_points table
+	// and exit if so
+	query := "SELECT manuf FROM data." + table + " WHERE mac = $1"
+	err := c.DB.QueryRow(query, mac).Scan(&manuf)
+	if err == nil {
+		return
+	}
+
+	// lookup manufacture from OUI database using mac prefix
+	query = "SELECT manuf FROM data.manuf WHERE prefix = $1"
+	c.DB.QueryRow(query, strings.ToUpper(mac[0:8])).Scan(&manuf)
+
+	// insert data into devices or access points table with manufacture
+	stmt := "INSERT INTO data." + table + " (mac, manuf) VALUES ($1, $2)"
+	_, err = c.DB.Exec(stmt, mac, manuf)
+	if err != nil {
+		log.Fatal("failed to insert packet:", err)
+	}
+}
+
+func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
+	// tag packet as originating from device or access point
+	c.UpsertPacketTag(*p.Subtype, *p.Source)
+	// insert packet
 	stmt := "" +
 		"INSERT INTO data.packets " +
-		"(arrival, subtype, src, src_manuf, dest, dest_manuf, freq, signal) " +
+		"(arrival, subtype, src, dest, freq, signal) " +
 		"VALUES " +
-		"($1, $2, $3, $4, $5, $6, $7, $8)"
+		"($1, $2, $3, $4, $5, $6)"
 	_, err := c.DB.Exec(
-		stmt,
-		p.Arrival, p.Subtype,
-		p.Source, src_manuf,
-		p.Destination, dest_manuf,
-		p.Freq, p.Signal,
+		stmt, p.Arrival, p.Subtype, p.Source, p.Destination, p.Freq, p.Signal,
 	)
 	if err != nil {
 		log.Fatal("failed to insert packet:", err)
