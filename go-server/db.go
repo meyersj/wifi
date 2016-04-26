@@ -79,15 +79,21 @@ func (c *DBClient) InsertPacket(p *wifiproto.Packet) {
 	}
 }
 
-func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
-	var r *wifiproto.Packet
-	records := []*wifiproto.Packet{}
+func (c *DBClient) QueryRecent(tstamp int64) []*RecentDAO {
+	var r *RecentDAO
+	records := []*RecentDAO{}
 
 	query := "" +
-		"SELECT arrival, subtype, src, signal " +
-		"FROM data.packets " +
-		"WHERE signal IS NOT NULL AND arrival > $1 " +
-		"ORDER BY src, arrival DESC"
+		"SELECT i.mac, i.manuf, i.ap, i.device, d.arrival, d.signal " +
+		"FROM data.packets AS d " +
+		"JOIN views.mac_index AS i ON d.src = i.mac " +
+		"WHERE d.signal IS NOT NULL AND d.arrival > $1 " +
+		"ORDER BY mac, arrival DESC "
+
+	//"SELECT arrival, subtype, src, signal " +
+	//"FROM data.packets " +
+	//"WHERE signal IS NOT NULL AND arrival > $1 " +
+	//"ORDER BY src, arrival DESC"
 
 	rows, err := c.DB.Query(query, tstamp)
 	if err != nil {
@@ -97,8 +103,8 @@ func (c *DBClient) QueryRecent(tstamp int64) []*wifiproto.Packet {
 
 	defer rows.Close()
 	for rows.Next() {
-		r = &wifiproto.Packet{}
-		err := rows.Scan(&r.Arrival, &r.Subtype, &r.Source, &r.Signal)
+		r = &RecentDAO{}
+		err := rows.Scan(&r.Mac, &r.Manuf, &r.AP, &r.Device, &r.Arrival, &r.Signal)
 		if err != nil {
 			log.Fatal(err)
 		}

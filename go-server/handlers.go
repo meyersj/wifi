@@ -71,43 +71,34 @@ func (p *PacketHandler) WriteResponse(w http.ResponseWriter, r *PacketResponse) 
 
 type DeviceSummary struct {
 	Mac          string
+	Manuf        string
 	FirstArrival float64
 	LastArrival  float64
 	AvgSignal    int32
 	Count        int32
-	Frames       []string
+	AP           bool
+	Device       bool
 }
 
-func InitDeviceSummary(p *wifiproto.Packet) *DeviceSummary {
+func InitDeviceSummary(r *RecentDAO) *DeviceSummary {
 	d := &DeviceSummary{}
-	d.Mac = *p.Source
-	d.FirstArrival = *p.Arrival
-	d.LastArrival = *p.Arrival
-	d.AvgSignal = *p.Signal
+	d.Mac = r.Mac
+	d.Manuf = string(r.Manuf)
+	d.AP = r.AP
+	d.Device = r.Device
+	d.FirstArrival = r.Arrival
+	d.LastArrival = r.Arrival
+	d.AvgSignal = r.Signal
 	d.Count = 1
-	d.Frames = []string{}
 	return d
 }
 
-func (d *DeviceSummary) Update(p *wifiproto.Packet) {
-	d.FirstArrival = math.Min(d.FirstArrival, *p.Arrival)
-	d.LastArrival = math.Max(d.LastArrival, *p.Arrival)
-	avg := (d.AvgSignal*d.Count + *p.Signal) / (d.Count + 1)
+func (d *DeviceSummary) Update(r *RecentDAO) {
+	d.FirstArrival = math.Min(d.FirstArrival, r.Arrival)
+	d.LastArrival = math.Max(d.LastArrival, r.Arrival)
+	avg := (d.AvgSignal*d.Count + r.Signal) / (d.Count + 1)
 	d.Count = d.Count + 1
 	d.AvgSignal = int32(avg)
-	d.Frames = append(d.Frames, *p.Subtype)
-}
-
-func (d *DeviceSummary) DistinctFrames() {
-	distinct_map := make(map[string]bool)
-	distinct := []string{}
-	for i := range d.Frames {
-		distinct_map[d.Frames[i]] = true
-	}
-	for key, _ := range distinct_map {
-		distinct = append(distinct, key)
-	}
-	d.Frames = distinct
 }
 
 type QueryResponse struct {
@@ -156,13 +147,13 @@ func (q *QueryHandler) WriteResponse(w http.ResponseWriter, r string) {
 	fmt.Fprintf(w, r)
 }
 
-func (q *QueryHandler) BinRecords(records []*wifiproto.Packet) []*DeviceSummary {
+func (q *QueryHandler) BinRecords(records []*RecentDAO) []*DeviceSummary {
 	var rec *DeviceSummary
 	var exists bool
 	devices := make(map[string]*DeviceSummary)
 
 	for i := 0; i < len(records); i++ {
-		rec, exists = devices[*records[i].Source]
+		rec, exists = devices[records[i].Mac]
 		if !exists {
 			rec = InitDeviceSummary(records[i])
 			devices[rec.Mac] = rec
@@ -171,11 +162,19 @@ func (q *QueryHandler) BinRecords(records []*wifiproto.Packet) []*DeviceSummary 
 	}
 
 	data := make([]*DeviceSummary, 0, len(devices))
-	for key, value := range devices {
-		devices[key].DistinctFrames()
+	for _, value := range devices {
 		data = append(data, value)
 	}
 	return data
+}
+
+type RecentDAO struct {
+	Mac     string
+	Manuf   []byte
+	AP      bool
+	Device  bool
+	Arrival float64
+	Signal  int32
 }
 
 type Bucket5DAO struct {
