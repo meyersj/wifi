@@ -5,30 +5,32 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start wifi monitor daemon at boot time
-# Description:       Enable listening on wifi monitor interface for packets.
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
 ### END INIT INFO
 
 # template source: https://github.com/fhd/init-script-template/blob/master/template
 
-# set dir to path of sensor folder inside repo
-dir="/home/jeff/wifi-repo/sensor"
-user="jeff"
+dir="/path/to/repo/sensor"
 cmd="bin/runner.sh"
+user="username" # this user must be able to run 'airmon-ng' without password prompt
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
 stdout_log="/var/log/$name.log"
 stderr_log="/var/log/$name.err"
 export PATH=$PATH:/usr/local/sbin
+export WIFIBIN=$dir/bin
 
 get_pid() {
     cat "$pid_file"
 }
 
+
 is_running() {
     [ -f "$pid_file" ] && ps `get_pid` > /dev/null 2>&1
 }
+
 
 case "$1" in
     start)
@@ -36,14 +38,12 @@ case "$1" in
 	    echo "Already started"
     else
         echo "Starting $name"
-        
-    cd "$dir"
-	if [ -z "$user" ]; then
-            sudo $cmd >> "$stdout_log" 2>> "$stderr_log" &
-        else
-            sudo -u "$user" $cmd >> "$stdout_log" 2>> "$stderr_log" &
-        fi
-        echo $! > "$pid_file"
+        cd "$dir"
+        # start runner script, this process will spawn multiple children processes
+        sudo -E -u "$user" $cmd >> "$stdout_log" 2>> "$stderr_log" &
+        # grab process id from runner script
+        pid=`ps aux | awk '/runner\.sh/ {print $2}'` 
+        echo $pid > "$pid_file"
         if ! is_running; then
             echo "Unable to start, see $stdout_log and $stderr_log"
             exit 1
@@ -53,13 +53,18 @@ case "$1" in
     stop)
     if is_running; then
         echo -n "Stopping $name.."
-        kill `get_pid`
+        # lookup process group from process id
+        pgid=`ps -o pgid --no-headers --pid $(get_pid)`
+        # kill every process in our process group
+        # this prevents children zombie processes
+        kill -TERM -$(echo $pgid)
+        # stop monitoring for all packets on network interface
+        $dir/bin/stopmon >> "$stdout_log" 2>> "$stderr_log"
         for i in {1..10}
         do
             if ! is_running; then
                 break
             fi
-
             echo -n "."
             sleep 1
         done
