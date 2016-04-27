@@ -62,41 +62,43 @@ def build_filter(include_frames, exclude_mac):
     display_filter = "({0}) && ({1})".format(subtype, exclude)
     return display_filter
 
+
+def start_listener_process(Listener, frame_types):
+    # construct tshark packet filter
+    display_filter = build_filter(frame_types, EXCLUDE_MACS)
+    logger.info("filtering for frame subtypes: {0}".format(display_filter))
+    # create Listener object with correct filter and handler
+    listener = Listener(
+        config=config,
+        display_filter=display_filter,
+        handler=Handler
+    )
+    # start listening for packets in another process
+    process = Process(target=listener.start)
+    process.start()
+    return process
+
+
 def main():
     logger.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
-
-
-    # create Listener object with correct filter and handler
-    display_filter = build_filter(DEFAULT_FRAME_TYPES, EXCLUDE_MACS)
-    logger.info("filtering for frame subtypes: {0}".format(display_filter))
-    default_listener = Listener(
-        config=config,
-        display_filter=display_filter,
-        handler=Handler
-    )
-    
-    # start sniffing for probe requests/response frames in background process
-    default_process = Process(target=default_listener.start)
-    default_process.start()
-
-    # wait for monitoring to start
+    # create Listener for probe requests/responses
+    default_process = start_listener_process(Listener, DEFAULT_FRAME_TYPES)
+    # wait for monitoring to start before starting data listener
     time.sleep(5)
-
     # create SleepListener listens for data frames for short intervals
     # to prevent those frames from taking over resources
-    # this 
-    display_filter = build_filter(DATA_FRAME_TYPES, EXCLUDE_MACS)
-    logger.info("filtering for frame subtypes: {0}".format(display_filter))
-    data_listener = SleepListener(
-        config=config,
-        display_filter=display_filter,
-        handler=Handler
-    )
-    
-    # start sniffing for data frames in background process
-    data_process = Process(target=data_listener.start)
-    data_process.start()
+    data_process = start_listener_process(SleepListener, DATA_FRAME_TYPES)
 
+    # poll whether our subprocess have died and restart if so
+    while True:
+        if not default_process.is_alive():
+            logger.error("default process died, restarting")
+            default_process = start_listener_process(Listener, DEFAULT_FRAME_TYPES)
+        if not data_process.is_alive():
+            logger.error("data process died, restarting")
+            data_process = start_listener_process(SleepListener, DATA_FRAME_TYPES)
+        time.sleep(30)
+    
 
 if __name__ == '__main__':
     main()
