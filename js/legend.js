@@ -1,6 +1,9 @@
 function Legend (svg, scales) {
     this.scales = scales;
     this.svg = svg;
+    this.font_family = 'sans-serif';
+    this.LEFT_PADDING = 50;
+    this.TOP_PADDING = 100;
 }
 
 Legend.prototype = {
@@ -10,9 +13,10 @@ Legend.prototype = {
         this.svg.selectAll(".user-summary-line").remove();
     },
     drawUserSummaryLegend: function() {
-        var UL = [50, this.scales.h - 60];
+        // UL = upper left, UR = upper right, BL = bottom left ...
+        var UL = [this.LEFT_PADDING, this.scales.h - 60];
         var UR = [this.scales.w - 50, this.scales.h - 60];
-        var BL = [50, this.scales.h - 30];
+        var BL = [this.LEFT_PADDING, this.scales.h - 30];
         var BR = [this.scales.w - 50, this.scales.h - 30];
         var VOFF = 20; 
         var labels = [
@@ -30,7 +34,6 @@ Legend.prototype = {
             [BL, BR],
             // vertical lines
             [[UL[0], UL[1] - 10], [BL[0], BL[1] + 10]],
-            //[[(UR[0] - UL[0]) / 2, UL[1] - 10], [(UR[0] - UL[0]) / 2, BL[1] + 10]],
             [[UR[0], UR[1] - 10], [BR[0], BR[1] + 10]],
         ];
         
@@ -39,6 +42,7 @@ Legend.prototype = {
         this.svg.selectAll(".user-sumamry-legend").data(labels).enter()
             .append("text")
             .attr("class", "user-summary-legend")
+            .attr("font-family", this.font_family)
             .attr("x", function(d) {
                 return d[0];
             })
@@ -60,31 +64,32 @@ Legend.prototype = {
             .attr("d", function(d) {
                 return lineFunc(d);
             })
-            .attr("stroke", "black")
+            .attr("stroke", "grey")
             .attr("stroke-width", "1");
     
     },
     drawSignalStrength: function(w) {
-        var signals = _.range(-30, -110, -10);
+        var signals = _.range(0, -110, -10);
         var scale = this.scales.windowSignal();
         this.svg.selectAll(".signal-legend").remove();
         this.svg.selectAll(".signal-legend").data(signals).enter()
             .append("text")
             .attr("class", "signal-legend")
+            //.attr("font-family", this.font_family)
             .text(function(d) {
                 return d;
             })
             .attr("x", function(d) {
                 return scale(d);
             })
-            .attr("y", 40);
+            .attr("y", this.TOP_PADDING - 20);
         
         this.svg.selectAll(".signal-label").remove();
         this.svg.append('text')
             .attr("class", "signal-label")
             .text("RSSI (dBm)")
             .attr("x", this.scales.w / 2)
-            .attr("y", 20);
+            .attr("y", this.TOP_PADDING - 40);
     },
     drawTime: function(start) {
         var recent = start + (this.scales.window_size * 60) 
@@ -100,6 +105,47 @@ Legend.prototype = {
             .attr("x", 0)
             .attr("y", function(d) {
                 return scale(d);
+            });
+    },
+    drawDeviceLegend: function() {
+        var data = [
+            {"name":"Device", "class":"wifi-device"},
+            {"name":"Mixed","class":"wifi-hybrid"},
+            {"name":"AP", "class":"wifi-access-point"},
+            {"name":"Unknown", "class":"wifi-unknown"}
+        ];
+
+        function spacing(i, label) {
+            return i * 45 + 20;
+        }
+        svg.selectAll(".device-legend")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr('r', 10)
+            .attr('class', function(d) {
+                return "device-legend recent-node " + d.class
+            })
+            .attr('cx', function(d, i) {
+                return spacing(i, d.name);
+            })
+            .attr('cy', function(d) {
+                return 20;
+            });
+        
+        svg.selectAll(".device-labels")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("class", "device-labels")
+            .attr('x', function(d, i) {
+                return spacing(i, d.name);
+            })
+            .attr('y', function(d) {
+                return 45
+            })
+            .text(function(d) {
+                return d.name;   
             });
     }
 };

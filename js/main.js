@@ -23,12 +23,12 @@ $(window).resize(function(e) {
 
 function initialize() {
     clearInterval(polling);
-    var navHeight = $("#main-navbar").height();
-    var headerHeight = $("#header-row").height();
+    // set up size of svg visualization
     var windowHeight = window.innerHeight;
+    var padding = $('.content-container').css('padding-top');
+    padding = parseInt(padding.substring(0, padding.length - 2), 10) * 2;
+    h = (windowHeight - padding) * 0.95;
     w = $("#visual").outerWidth();
-    var heightOffset = windowHeight > 400 ? 50 : 20;
-    h = windowHeight - (heightOffset + navHeight + headerHeight);
     svg = canvas("#visual");
     scaleFactory = new ScaleFactory(w, h, window_size);
     legend = initLegend(svg, scaleFactory); 
@@ -80,6 +80,7 @@ function clear_hour_circles() {
 function initLegend(svg, scaleFactory) {
     var legend = new Legend(svg, scaleFactory);
     legend.drawUserSummaryLegend();
+    legend.drawDeviceLegend();
     return legend
 }
 
@@ -199,11 +200,38 @@ function visualize(data) {
         })
         .on("mouseover", mouseoverNode)
         .on("mouseout", mouseoutNode);
-    
+
+
+    function class_builder(d) {
+        var cls = "recent-node";
+        if (!d.AP && !d.Device) {
+            return cls + " wifi-unknown";
+        }
+        else if (d.AP && !d.Device) {
+            return cls + " wifi-access-point";
+        }
+        else if (!d.AP && d.Device) {
+            return cls + " wifi-device";
+        }
+        else if (d.AP && d.Device) {
+            return cls + " wifi-hybrid";
+        }
+        return cls + " wifi-error";
+    }
+
+
     group.append("circle")
-        .attr('fill', function(d) { 
+        .attr('opacity', function(d) { 
             return scales.age(d.LastArrival);
         })
+        .attr("class", "recent-node")
+        .attr("class", function(d) {
+            return class_builder(d);
+        })
+        .attr("signal", function(d) {
+            console.log(d);
+            return d.AvgSignal;
+        });
     
     /*
     group.append("text")
@@ -220,9 +248,12 @@ function visualize(data) {
     */
 
     nodes.select("circle").transition().duration(interval)
-        .attr('fill', function(d) {
+        .attr('opacity', function(d) { 
             return scales.age(d.LastArrival);
         })
+        //.attr('fill', function(d) {
+        //    return scales.age(d.LastArrival);
+        //})
         .attr('r', function(d) {
             return scales.duration(d.LastArrival - d.FirstArrival);
         })

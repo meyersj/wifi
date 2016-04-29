@@ -2,6 +2,8 @@ function ScaleFactory(w, h, window_size) {
     this.w = w;
     this.h = h;
     this.window_size = window_size;
+    this.LEFT_PADDING = 50;
+    this.TOP_PADDING = 100;
 }
 
 ScaleFactory.prototype = {
@@ -10,7 +12,7 @@ ScaleFactory.prototype = {
     windowAge: function(start) {
         return d3.scale.pow().exponent(1/2)
             .domain([start + (this.window_size * 60), start])
-            .range(["blue", "white"]);
+            .range([1, 0.3]);
     },
     // RADIUS
     windowDuration: function() {
@@ -21,14 +23,14 @@ ScaleFactory.prototype = {
     // X-AXIS
     windowSignal: function() {
         return d3.scale.linear()
-            .domain([-30, -100])
-            .range([0 + 50, this.w - 50]);
+            .domain([-10, -100])
+            .range([0 + this.LEFT_PADDING, this.w - 50]);
     },
     // Y-AXIS
     windowTime: function(start) {
         return d3.scale.linear()
             .domain([start, start + (60 * this.window_size)])
-            .range([this.h - 120, 0 + 60]);
+            .range([this.h - 120, 0 + this.TOP_PADDING]);
     },
     // RADIUS
     hourPingRate: function() {
@@ -42,8 +44,8 @@ ScaleFactory.prototype = {
     // COLOR
     hourSignal: function() {
         return d3.scale.linear()
-            .domain([-30, -100])
-            .range(["#3E932A", "white"]);
+            .domain([-10, -100])
+            .range(["#7B7B76", "#7B7B76"]);
 
     },
     // X-AXIS
@@ -51,13 +53,13 @@ ScaleFactory.prototype = {
         var HOUR = 3600;
         return d3.scale.linear()
             .domain([start, start + HOUR])
-            .range([0 + 50, this.w - 50]);
+            .range([0 + this.LEFT_PADDING, this.w - 50]);
     },
     // X-AXIS
     dailyTime: function(start) {
         var HOUR = 3600;
         return d3.scale.linear()
             .domain([start, start + (HOUR * 24)])
-            .range([0 + 50, this.w - 50]);
+            .range([0 + this.LEFT_PADDING, this.w - 50]);
     }
 }
