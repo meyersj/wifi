@@ -69,7 +69,7 @@ Legend.prototype = {
     
     },
     drawSignalStrength: function(w) {
-        var signals = _.range(0, -110, -10);
+        var signals = _.range(-10, -110, -10);
         var scale = this.scales.windowSignal();
         this.svg.selectAll(".signal-legend").remove();
         this.svg.selectAll(".signal-legend").data(signals).enter()
