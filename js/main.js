@@ -11,31 +11,39 @@ var base_url = "https://explore.meyersj.com:8005";
 var query_endpoint = base_url + "/query";
 var summary_endpoint = base_url + "/user/summary";
 var polling = null;
-
+var downloading = false;
+var resize_timeout = null;
 
 $(document).ready(function() {
     initialize();
 });
 
 $(window).resize(function(e) {
-    initialize();
+    clearTimeout(resize_timeout);
+    resize_timeout = setTimeout(function() { initialize(); }, 1000);
 });
+
+function compute_svg_size() {
+    var windowHeight = window.innerHeight;
+    var padding = $('.content-container').css('padding-top');
+    padding = parseInt(padding.substring(0, padding.length - 2), 10) * 2;
+    var height = (windowHeight - padding) * 0.95;
+    var width = $("#visual").outerWidth();
+    return [height, width];
+}
 
 function initialize() {
     clearInterval(polling);
     // set up size of svg visualization
-    var windowHeight = window.innerHeight;
-    var padding = $('.content-container').css('padding-top');
-    padding = parseInt(padding.substring(0, padding.length - 2), 10) * 2;
-    h = (windowHeight - padding) * 0.95;
-    w = $("#visual").outerWidth();
+    var size = compute_svg_size();
+    h = size[0];
+    w = size[1];
     svg = canvas("#visual");
     scaleFactory = new ScaleFactory(w, h, window_size);
     legend = initLegend(svg, scaleFactory); 
     userDataCache = new DataCache();
     buildScales(scaleFactory);
     update();
-    polling = setInterval(function() { update(); }, interval);
 }
 
 function canvas(div) {
@@ -54,12 +62,11 @@ function buildScales(factory) {
 }
 
 function mouseoverNode(d) {
-    console.log("ACTIVE: " + active + " DATA: " + d.Mac)
     if (active === d.Mac) {
-        console.log("already");
+        // device already active, do nothing
         return;
     }
-    clear_hour_circles();
+    clear_device_summary();
     toggleUserSummary(d);
     active = d.Mac;
 }
@@ -68,19 +75,32 @@ function mouseoutNode(d) {
     active = null;
 }
 
-function clear_hour_circles() {
-    var nodes = svg.selectAll(".hour-data-point");
-    nodes.selectAll(".hour-data-point").selectAll("*").remove();
+function clear_device_summary() {
+    var nodes = svg.selectAll(".summary-node");
+    nodes.selectAll(".summary-node").selectAll("*").remove();
     nodes.remove();
-    nodes = svg.selectAll(".daily-data-point");
-    nodes.selectAll(".daily-data-point").selectAll("*").remove();
-    nodes.remove();
+}
+
+function device_type(d) {
+    if (!d.AP && !d.Device) {
+        return "wifi-unknown";
+    }
+    else if (d.AP && !d.Device) {
+        return "wifi-access-point";
+    }
+    else if (!d.AP && d.Device) {
+        return "wifi-device";
+    }
+    else if (d.AP && d.Device) {
+        return "wifi-hybrid";
+    }
+    return "wifi-error";
 }
 
 function initLegend(svg, scaleFactory) {
     var legend = new Legend(svg, scaleFactory);
     legend.drawUserSummaryLegend();
-    legend.drawDeviceLegend();
+    legend.drawDeviceLegend(window_size);
     return legend
 }
 
@@ -95,17 +115,16 @@ function drawHourSummary(mac, data) {
         .data(data.HourData)
         .enter()
         .append("g")
-        .attr("class", "hour-data-point")
+        .attr("class", "hour-data-point summary-node")
         .attr("mac", function(d) {
             return d.Mac     
         })
         .append("circle")
-        .attr('fill', function(d) {
-            return scales.hourColor(d.AvgSignal);         
+        .attr("class", function(d) {
+            var device_data = devices[d.Mac];
+            return "wifi-node " + device_type(device_data);
         })
-        .attr('r', function(d) {
-            return scales.hourRadius(d.PingCount);
-        })
+        .attr('r', 6)
         .attr('cx', function(d) {
             return xScale(d.Bucket);
         })
@@ -120,17 +139,16 @@ function drawDailySummary(mac, data) {
         .data(data.DailyData)
         .enter()
         .append("g")
-        .attr("class", "daily-data-point")
+        .attr("class", "daily-data-point summary-node")
         .attr("mac", function(d) {
             return d.Mac     
         })
         .append("circle")
-        .attr('fill', function(d) {
-            return scales.hourColor(d.AvgSignal);         
+        .attr('class', function(d) {
+            var device_data = devices[d.Mac];
+            return "wifi-node " + device_type(device_data); 
         })
-        .attr('r', function(d) {
-            return scales.hourRadius(d.Bucket5Count);
-        })
+        .attr('r', 6)
         .attr('cx', function(d) {
             return xScale(d.Hour);
         })
@@ -157,12 +175,19 @@ function toggleUserSummary(d) {
 
 function update() {
     $.getJSON(query_endpoint, {"window":window_size}, function(data) {
-        legend.drawSignalStrength(w);
-        legend.drawTime(h, data.Start, window_size);    
+        if (h >= 500) {
+            legend.drawTime(h, data.Start, window_size);    
+        }
+        if (w >= 500) {
+            legend.drawSignalStrength(w);
+        }
         scales.age = scaleFactory.windowAge(data.Start);
         scales.scaleY = scaleFactory.windowTime(data.Start);
         var dataset = merge(devices, data.Start, data.Data);
         visualize(dataset);
+        if (!polling) {
+            polling = setInterval(function() { update(); }, interval);
+        }
     });
 }
 
@@ -197,63 +222,37 @@ function visualize(data) {
         .attr("class", "node")
         .attr("mac", function(d) {
             return d.Mac;
-        })
-        .on("mouseover", mouseoverNode)
-        .on("mouseout", mouseoutNode);
-
-
-    function class_builder(d) {
-        var cls = "recent-node";
-        if (!d.AP && !d.Device) {
-            return cls + " wifi-unknown";
-        }
-        else if (d.AP && !d.Device) {
-            return cls + " wifi-access-point";
-        }
-        else if (!d.AP && d.Device) {
-            return cls + " wifi-device";
-        }
-        else if (d.AP && d.Device) {
-            return cls + " wifi-hybrid";
-        }
-        return cls + " wifi-error";
-    }
-
-
+        });
+        
     group.append("circle")
         .attr('opacity', function(d) { 
             return scales.age(d.LastArrival);
         })
-        .attr("class", "recent-node")
         .attr("class", function(d) {
-            return class_builder(d);
+            return "wifi-node recent-node " + device_type(d);
         })
         .attr("signal", function(d) {
-            console.log(d);
             return d.AvgSignal;
-        });
-    
-    /*
+        })
+        .on("mouseover", mouseoverNode)
+        .on("mouseout", mouseoutNode);
+
     group.append("text")
-    
-    nodes.select("text").transition().duration(interval)
-        .attr('x', function(d) {
-            var r = scales.duration(d.LastArrival - d.FirstArrival);
-            return 0;
-        })
-        .attr('y', function(d) {
-            return 20;
-        })
-        .text(function(d) { return "Device: " + d.Mac; });
-    */
+        .attr("class", "mac-label")
+        .text(function(d) {
+            return d.Mac;
+        });
+
+    group.append("text")
+        .attr("class", "manuf-label")
+        .text(function(d) {
+            return d.Manuf;
+        });
 
     nodes.select("circle").transition().duration(interval)
         .attr('opacity', function(d) { 
             return scales.age(d.LastArrival);
         })
-        //.attr('fill', function(d) {
-        //    return scales.age(d.LastArrival);
-        //})
         .attr('r', function(d) {
             return scales.duration(d.LastArrival - d.FirstArrival);
         })
@@ -262,6 +261,22 @@ function visualize(data) {
         })
         .attr('cy', function(d) {
             return scales.scaleY(d.LastArrival);
+        });
+
+    nodes.select(".mac-label").transition().duration(interval)
+        .attr('x', function(d) {
+             return scales.scaleX(d.AvgSignal);
+        })
+        .attr('y', function(d) {
+            return scales.scaleY(d.LastArrival) + 50;
+        });
+
+    nodes.select(".manuf-label").transition().duration(interval)
+        .attr('x', function(d) {
+             return scales.scaleX(d.AvgSignal);
+        })
+        .attr('y', function(d) {
+            return scales.scaleY(d.LastArrival) + 65;
         });
     
     nodes.exit().remove();

@@ -89,7 +89,7 @@ Legend.prototype = {
             .attr("class", "signal-label")
             .text("RSSI (dBm)")
             .attr("x", this.scales.w / 2)
-            .attr("y", this.TOP_PADDING - 40);
+            .attr("y", this.TOP_PADDING - 35);
     },
     drawTime: function(start) {
         var recent = start + (this.scales.window_size * 60) 
@@ -102,35 +102,42 @@ Legend.prototype = {
                 return Math.round((recent - d) / 60) + " min";
             })
             .attr("class", "time-legend")
-            .attr("x", 0)
+            .attr("x", 5)
             .attr("y", function(d) {
                 return scale(d);
             });
     },
-    drawDeviceLegend: function() {
+    drawDeviceLegend: function(window_size) {
         var data = [
+            {"name":"new", "class":"wifi-unknown", "size":15},
+            {"name":"old", "class":"wifi-unknown", "size":5},
             {"name":"Device", "class":"wifi-device"},
             {"name":"Mixed","class":"wifi-hybrid"},
             {"name":"AP", "class":"wifi-access-point"},
-            {"name":"Unknown", "class":"wifi-unknown"}
+            {"name":"unknown", "class":"wifi-unknown"}
         ];
 
         function spacing(i, label) {
-            return i * 45 + 20;
+            return i * 42 + 22;
         }
         svg.selectAll(".device-legend")
             .data(data)
             .enter()
             .append("circle")
-            .attr('r', 10)
+            .attr('r', function(d) {
+                if (d.hasOwnProperty("size")) {
+                    return d.size;
+                }
+                return 10;
+            })
             .attr('class', function(d) {
-                return "device-legend recent-node " + d.class
+                return "device-legend wifi-node " + d.class
             })
             .attr('cx', function(d, i) {
                 return spacing(i, d.name);
             })
             .attr('cy', function(d) {
-                return 20;
+                return 22;
             });
         
         svg.selectAll(".device-labels")
@@ -142,7 +149,7 @@ Legend.prototype = {
                 return spacing(i, d.name);
             })
             .attr('y', function(d) {
-                return 45
+                return 49;
             })
             .text(function(d) {
                 return d.name;   

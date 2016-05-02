@@ -1,107 +1,78 @@
-/*
-body {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    background: #DAE3E7;
-}
-*/
-
-/*
-.content-container {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-*/
-
 .content-container {
     padding: 20px;
 }
 
 @media (max-height: 500px) {
     .content-container {
-        padding-top: 0px;
-        padding-bottom: 0px;
+        padding-top: 4px;
+        padding-bottom: 4px;
     }
 }
 
 @media (max-width: 500px) {
     .content-container {
-        padding-left: 0px;
-        padding-right: 0px;
+        padding-left: 4px;
+        padding-right: 4px;
     }
 }
 
-
-/*
-circle {
-    stroke: #DBDBD9;
-    stroke-width: 1px;
-}
-*/
-
-.recent-node {
+.wifi-node {
     stroke: #DBDBD9;
     stroke-width: 2px;
 }
 
+/* green circle */
 .wifi-access-point {
     fill: #50DD30;
 }
 
+/* blue circle */
 .wifi-device {
     fill: #3081DD;
 }
 
+/* blue/green circle */
 .wifi-hybrid {
     fill: #40AF87;
 }
 
+/* grey circle */
 .wifi-unknown {
     fill: #B2B1B0;
 }
 
+/* yellow circle outline when hovering over nodes */
 .recent-node:hover {
     stroke: #F2E646;
     stroke-width: 6px;
 }
 
-/*
-circle:hover {
-    stroke: #ADAD66;
-    stroke-width: 3px;
+svg {
+    background: #F7F7F7;
 }
-*/
-     
-text {
+
+svg text {
+    fill: #1B1E21;
     text-anchor: start;
     font-size: 12px;
 }
 
-text.time-legend {
-    text-anchor: start;
-}
 
-.device-labels, .user-summary-legend {
+.user-summary-legend {
     text-anchor: middle;
 }
 
-
-
-/*
-.node text {
-    text-anchor: end;
-    font-size: 12px;
-    cursor: default;
+.device-labels {
+    text-anchor: middle;
 }
-*/
 
-.node text {
+.recent-node ~ text {
     opacity: 0;
+    cursor: default;
+    text-anchor: middle;
 }
 
-.node:hover text {
+.recent-node:hover ~ text {
     opacity: 1;
 }
 
