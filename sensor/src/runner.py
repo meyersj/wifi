@@ -5,6 +5,7 @@ import logging
 import time
 from multiprocessing import Process
 
+from tshark import TSharkBuilder
 
 # setup logging
 FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
@@ -40,37 +41,23 @@ DEFAULT_FRAME_TYPES   = [
     Frames.PROBE_REQUEST,
     Frames.PROBE_RESPONSE,
 ]
-
 DATA_FRAME_TYPES = [
     Frames.DATA,
     Frames.QOS_DATA
 ]
 
 
-def construct_filter_expr(expr, joiner, iterable):
-    if not iterable: return ""
-    elif len(iterable) == 1: return expr.format(iterable[0])
-    else: return joiner.join([expr.format(text) for text in iterable])
-
-
-def build_filter(include_frames, exclude_mac):
-    exclude_expr = "wlan.sa != {0}"
-    subtype_expr = "wlan.fc.type_subtype == {0}"
-    # construct expressions
-    exclude = construct_filter_expr(exclude_expr, " && ", exclude_mac)
-    subtype = construct_filter_expr(subtype_expr, " || ", include_frames)
-    display_filter = "({0}) && ({1})".format(subtype, exclude)
-    return display_filter
-
-
 def start_listener_process(Listener, frame_types):
-    # construct tshark packet filter
-    display_filter = build_filter(frame_types, EXCLUDE_MACS)
-    logger.info("filtering for frame subtypes: {0}".format(display_filter))
+    # construct tshark shell command
+    tshark_cmd_builder = TSharkBuilder(config.interface)
+    tshark_cmd_builder.set_subtypes(frame_types)
+    tshark_cmd_builder.set_macs(EXCLUDE_MACS)
+    tshark_cmd = tshark_cmd_builder.build()
+    logger.info(tshark_cmd)
     # create Listener object with correct filter and handler
     listener = Listener(
         config=config,
-        display_filter=display_filter,
+        cmd=tshark_cmd,
         handler=Handler
     )
     # start listening for packets in another process
@@ -80,7 +67,6 @@ def start_listener_process(Listener, frame_types):
 
 
 def main():
-    logger.info("excluding MAC address: {0}".format(EXCLUDE_MACS))
     # create Listener for probe requests/responses
     default_process = start_listener_process(Listener, DEFAULT_FRAME_TYPES)
     # wait for monitoring to start before starting data listener
@@ -89,7 +75,7 @@ def main():
     # to prevent those frames from taking over resources
     data_process = start_listener_process(SleepListener, DATA_FRAME_TYPES)
 
-    # poll whether our subprocess have died and restart if so
+    # poll whether our subprocess has died and restart if so
     while True:
         if not default_process.is_alive():
             logger.error("default process died, restarting")
