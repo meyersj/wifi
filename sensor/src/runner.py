@@ -1,39 +1,27 @@
-import sys
+""" main runnner to listen for wifi packets """
+
+
 import os
-from os.path import dirname, abspath
 import logging
 import time
 from multiprocessing import Process
 
-from tshark import TSharkBuilder
+from .tshark import TSharkBuilder
+from .listener import Listener, SleepListener
+from .handler import PostHandler as Handler
+from .constants import Frames
+
 
 # setup logging
-FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'   
+FORMAT = '%(levelname)s %(asctime)s %(filename)s %(message)s'
 logging.basicConfig(format=FORMAT)
-logger = logging.getLogger('wifi')
-logger.setLevel(logging.INFO)
-#logger.setLevel(logging.DEBUG)
-
-parent = dirname(dirname(abspath(__file__)))
-sys.path.insert(0, parent)
-try:
-    import conf.config as config
-    if config.sensor_mac == "XX:XX:XX:XX:XX:XX":
-        logger.error("Failed to set config variable 'sensor_mac' in conf/config.py")
-        sys.exit(2)
-except Exception as e:
-    logger.error("Failed to import config file at conf/config.py")
-    sys.exit(1)
+LOGGER = logging.getLogger('wifi')
+#LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
-from listener import Listener, SleepListener
-#from handler import Handler
-from handler import PostHandler as Handler
-from constants import Frames
-
-
-EXCLUDE_MACS  = [config.sensor_mac]
-DEFAULT_FRAME_TYPES   = [
+INTERFACE = os.getenv('WIFISENSOR_INTERFACE', 'wlan0')
+DEFAULT_FRAME_TYPES = [
     Frames.ASSOCIATION_REQUEST,
     Frames.ASSOCIATION_RESPONSE,
     Frames.REASSOCIATION_RESPONSE,
@@ -45,20 +33,19 @@ DATA_FRAME_TYPES = [
     Frames.DATA,
     Frames.QOS_DATA
 ]
+ALL_FRAME_TYPES = DEFAULT_FRAME_TYPES + DATA_FRAME_TYPES
 
 
-def start_listener_process(Listener, frame_types):
+def start_listener(listener_cls, handler_cls, frame_types):
+    """ start main packet listening process """
     # construct tshark shell command
-    tshark_cmd_builder = TSharkBuilder(config.interface)
-    tshark_cmd_builder.set_subtypes(frame_types)
-    tshark_cmd_builder.set_macs(EXCLUDE_MACS)
-    tshark_cmd = tshark_cmd_builder.build()
-    logger.info(tshark_cmd)
+    builder = TSharkBuilder(interface=INTERFACE)
+    tshark_cmd = builder.set_subtypes(frame_types).build()
+    LOGGER.info("COMMAND: {0}".format(tshark_cmd))
     # create Listener object with correct filter and handler
-    listener = Listener(
-        config=config,
+    listener = listener_cls(
         cmd=tshark_cmd,
-        handler=Handler
+        handler=handler_cls
     )
     # start listening for packets in another process
     process = Process(target=listener.start)
@@ -66,25 +53,37 @@ def start_listener_process(Listener, frame_types):
     return process
 
 
-def main():
+def basic_runner(frame_types):
+    """ create basic runner for probe requests/responses """
+    return start_listener(Listener, Handler, frame_types)
+
+
+def default_data_runner():
+    """ create listener for both management and data frames """
     # create Listener for probe requests/responses
-    default_process = start_listener_process(Listener, DEFAULT_FRAME_TYPES)
+    default_process = start_listener(Listener, Handler, DEFAULT_FRAME_TYPES)
     # wait for monitoring to start before starting data listener
     time.sleep(5)
-    # create SleepListener listens for data frames for short intervals
+    # create SleepListener to listen for data frames in short intervals
     # to prevent those frames from taking over resources
-    data_process = start_listener_process(SleepListener, DATA_FRAME_TYPES)
+    data_process = start_listener(SleepListener, Handler, DATA_FRAME_TYPES)
 
     # poll whether our subprocess has died and restart if so
     while True:
         if not default_process.is_alive():
-            logger.error("default process died, restarting")
-            default_process = start_listener_process(Listener, DEFAULT_FRAME_TYPES)
+            LOGGER.error("default process died, restarting")
+            default_process = start_listener(
+                Listener, Handler, DEFAULT_FRAME_TYPES)
         if not data_process.is_alive():
-            logger.error("data process died, restarting")
-            data_process = start_listener_process(SleepListener, DATA_FRAME_TYPES)
+            LOGGER.error("data process died, restarting")
+            data_process = start_listener(Listener, Handler, DATA_FRAME_TYPES)
         time.sleep(30)
-    
+
+def main():
+    """ main function """
+    default_data_runner()
+    #basic_runner()
+
 
 if __name__ == '__main__':
     main()
