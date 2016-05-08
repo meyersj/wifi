@@ -28,11 +28,8 @@ class TSharkBuilder(object):
 
     def build(self):
         """ construct tshark command """
-        bpf_filter = "not broadcast and not multicast"
-        tshark = "tshark -i {0} -l -f '{1}' -Y '{2}' -T fields {3}"
-        #tshark = "tshark -i {0} -l -Y '{1}' -T fields {2}"
-        return tshark.format(
-            self.interface, bpf_filter, self._subtypes(), self._fields())
+        tshark = "tshark -i {0} -l -Y '{1}' -T fields {2}"
+        return tshark.format(self.interface, self._subtypes(), self._fields())
 
     def set_fields(self, fields):
         """ set fields that tshark should output """
