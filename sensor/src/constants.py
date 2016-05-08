@@ -1,4 +1,8 @@
-class Frames(object):
+""" Basic Constants """
+
+
+class Frames(object):   # pylint: disable=too-few-public-methods
+    """ subtypes for interesting wifi frames """
 
     ASSOCIATION_REQUEST = "0x00"            # device
     ASSOCIATION_RESPONSE = "0x01"           # AP
