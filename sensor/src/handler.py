@@ -1,57 +1,65 @@
-import requests
-import time
-import threading
+""" classes to handle packets that are picked up from sensor """
+
+
+import os
 import logging
+import threading
+import time
+import requests
 
-from wifi_pb2 import Payload
+from .wifi_pb2 import Payload
 
 
-logger = logging.getLogger('wifi')
+PAYLOAD_TIMER = int(os.getenv('WIFISENSOR_PAYLOAD_TIMER', 5))
+DISTINCT_TIMER = int(os.getenv('WIFISENSOR_DISTINCT_TIMER', 15))
+SERVER_ENDPOINT = os.getenv('WIFISENSOR_SERVER_ENDPOINT', '')
+
+LOGGER = logging.getLogger('wifi')
 
 
-class Handler(object):
-    
-    def __init__(self, config):
-        pass
+class Handler(object):  # pylint: disable-msg=too-few-public-methods
+    """ default handler """
 
-    def handle(self, packet):
+    def handle(self, packet):   # pylint: disable-msg=no-self-use
+        """ handle packet """
         print packet
 
 
-class PostHandler(Handler):
+class PostHandler(Handler): # pylint: disable-msg=too-few-public-methods
+    """ handler to HTTP POST data to go-server API """
 
-    def __init__(self, config):
+    def __init__(self):
         now = float(time.time())
-        self.config = config
-        self.payload_timer = now + self.config.payload_timer
-        self.distinct_timer = now + self.config.distinct_timer
+        self.payload_timer = now + PAYLOAD_TIMER
+        self.distinct_timer = now + DISTINCT_TIMER
         self.data = []
         self.distinct = {}
-   
+
     def handle(self, packet):
         # check if timer is expired to send payload
         now = float(time.time())
         self.flush(now)
         key = "{0}-{1}".format(packet.source, packet.destination)
         if key not in self.distinct:
-            self.distinct[key] = now + self.config.distinct_timer
+            self.distinct[key] = now + PAYLOAD_TIMER
             self.data.append(packet)
-        elif self.distinct[key] < now - self.config.distinct_timer:
+        elif self.distinct[key] < now - DISTINCT_TIMER:
             self.data.append(packet)
-            self.distinct[key] = now + self.config.distinct_timer
-    
+            self.distinct[key] = now + DISTINCT_TIMER
+
     def send(self):
+        """ call internal send """
         if not self.data:
             return
         self.__send()
 
     def __send(self):
+        """ build protobuf payload and make request """
         # construct payload
         payload = Payload()
         payload.location = "location"
         payload.sensor = "sensor"
         payload.data.extend(self.data)
-
         # make request in background thread
         thread = threading.Thread(
             name="post",
@@ -60,27 +68,33 @@ class PostHandler(Handler):
         )
         thread.start()
 
-    # runs in a background thread
-    def post(self, payload=None):
+    def post(self, payload=None): # pylint: disable-msg=no-self-use
+        """ POST data to server, this function runs in background thread """
+        if not SERVER_ENDPOINT:
+            msg = 'WIFISENSOR_SERVER_ENDPOINT environment variable not set\n'
+            msg += 'data is not being persisted'
+            LOGGER.error(msg)
+            return
         headers = {'Content-type':'application/x-protobuf'}
         response = requests.post(
-            self.config.endpoint,
+            SERVER_ENDPOINT,
             data=payload,
             headers=headers,
             verify=True,
             timeout=5
         )
-        logger.debug("status code: {0}".format(response.status_code))
+        LOGGER.debug("status code: {0}".format(response.status_code))
 
     def flush(self, now):
+        """ flush data every N seconds to limit network calls """
         if now < self.payload_timer:
             return
-        logger.info("flusing {0} records".format(len(self.data)))
+        LOGGER.info("flusing {0} records".format(len(self.data)))
         self.send()
-        self.payload_timer = float(time.time()) + self.config.payload_timer
-        new_distinct = {} 
+        self.payload_timer = float(time.time()) + PAYLOAD_TIMER
+        new_distinct = {}
         for key, value in self.distinct.iteritems():
-            if value >= now - self.config.distinct_timer:
+            if value >= now - DISTINCT_TIMER:
                 new_distinct[key] = value
         self.distinct = new_distinct
         self.data = []
