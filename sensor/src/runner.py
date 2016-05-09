@@ -76,7 +76,8 @@ def default_data_runner():
                 Listener, Handler, DEFAULT_FRAME_TYPES)
         if not data_process.is_alive():
             LOGGER.error("data process died, restarting")
-            data_process = start_listener(Listener, Handler, DATA_FRAME_TYPES)
+            data_process = start_listener(
+                SleepListener, Handler, DATA_FRAME_TYPES)
         time.sleep(30)
 
 def main():
