@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+interface=$1
+
+# make sure network interface is in monitor mode
+sudo ifconfig $interface down
+sudo iwconfig $interface mode monitor
+sudo ifconfig $interface up
