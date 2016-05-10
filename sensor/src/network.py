@@ -5,6 +5,8 @@ import os
 import socket
 import fcntl
 import struct
+import time
+import subprocess
 
 
 def get_mac_address(ifname):
@@ -20,9 +22,18 @@ def get_mac_address(ifname):
     return ''.join(['%02x:' % ord(char) for char in info[18:24]])[:-1]
 
 
-def is_available(interface):
+def is_available(ifname):
     """ check if interface provided by name exists """
     network_interfaces = os.listdir('/sys/class/net/')
-    if interface not in network_interfaces:
+    if ifname not in network_interfaces:
         return False
     return True
+
+
+def channel_hopper(ifname):
+    """ hop between all channels on provided interface """
+    while True:
+        for channel in range(1, 12):
+            cmd = ['sudo', 'iwconfig', ifname, 'channel', str(channel)]
+            subprocess.call(cmd)
+            time.sleep(1)
