@@ -1,5 +1,9 @@
 #!env/bin/python
 """ import and execute main function from runner script """
 
-from src.runner import main
-main()
+
+from sensor.runner import main_runner
+
+
+if __name__ == '__main__':
+    main_runner()

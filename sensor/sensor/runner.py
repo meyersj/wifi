@@ -70,7 +70,7 @@ def start_channel_hopping(ifname):
 
 def basic_runner(frame_types):
     """ create basic runner for probe requests/responses """
-    return start_listener(Listener, Handler, frame_types)
+    start_listener(Listener, Handler, frame_types)
 
 
 def default_data_runner():
@@ -95,11 +95,8 @@ def default_data_runner():
         time.sleep(30)
 
 
-def main():
+def main_runner():
     """ main function """
-    default_data_runner()
-    #basic_runner()
-
-
-if __name__ == '__main__':
-    main()
+    # start processes to listen for management and dataframes and channel hopping
+    #default_data_runner()
+    basic_runner(ALL_FRAME_TYPES)
