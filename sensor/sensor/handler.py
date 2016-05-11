@@ -83,13 +83,13 @@ class PostHandler(Handler): # pylint: disable-msg=too-few-public-methods
             verify=True,
             timeout=5
         )
-        LOGGER.debug("status code: {0}".format(response.status_code))
+        LOGGER.debug("status code: %s", response.status_code)
 
     def flush(self, now):
         """ flush data every N seconds to limit network calls """
         if now < self.payload_timer:
             return
-        LOGGER.info("flusing {0} records".format(len(self.data)))
+        LOGGER.info("flusing %s records", len(self.data))
         self.send()
         self.payload_timer = float(time.time()) + PAYLOAD_TIMER
         new_distinct = {}

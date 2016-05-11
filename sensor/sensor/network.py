@@ -35,5 +35,9 @@ def channel_hopper(ifname):
     while True:
         for channel in range(1, 12):
             cmd = ['sudo', 'iwconfig', ifname, 'channel', str(channel)]
-            subprocess.call(cmd)
-            time.sleep(1)
+            ret = subprocess.call(cmd)
+            if ret == 0:
+                time.sleep(1)
+            else:
+
+                time.sleep(10)
