@@ -39,7 +39,7 @@ ALL_FRAME_TYPES = DEFAULT_FRAME_TYPES + DATA_FRAME_TYPES
 
 # check if provided interface actually exists
 if not is_available(INTERFACE):
-    LOGGER.error("interface {0} not available, exiting".format(INTERFACE))
+    LOGGER.error("interface %s not available, exiting", INTERFACE)
     sys.exit(1)
 
 
@@ -48,7 +48,7 @@ def start_listener(listener_cls, handler_cls, frame_types):
     # construct tshark shell command
     builder = TSharkBuilder(interface=INTERFACE)
     tshark_cmd = builder.set_subtypes(frame_types).build()
-    LOGGER.info("COMMAND: {0}".format(tshark_cmd))
+    LOGGER.info("COMMAND: %s", tshark_cmd)
     # create Listener object with correct filter and handler
     listener = listener_cls(
         cmd=tshark_cmd,
@@ -90,7 +90,7 @@ def default_data_runner():
             if not process.is_alive():
                 LOGGER.error("process died, restarting")
                 print "before", processes
-                process, func, args = func(*args) # pylint: disable=star-args
+                process, func, args = func(*args) # pylint: disable=bad-option-value
                 print "after", processes
         time.sleep(30)
 
