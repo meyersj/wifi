@@ -68,12 +68,12 @@ def start_channel_hopping(ifname):
     return (process, start_channel_hopping, (ifname,))
 
 
-def basic_runner(frame_types):
+def basic_runner():
     """ create basic runner for probe requests/responses """
-    start_listener(Listener, Handler, frame_types)
+    start_listener(Listener, Handler, ALL_FRAME_TYPES)
 
 
-def default_data_runner():
+def main_runner():
     """ create listener for both management and data frames """
     processes = []
 
@@ -93,10 +93,3 @@ def default_data_runner():
                 process, func, args = func(*args) # pylint: disable=bad-option-value
                 print "after", processes
         time.sleep(30)
-
-
-def main_runner():
-    """ main function """
-    # start processes to listen for management and dataframes and channel hopping
-    #default_data_runner()
-    basic_runner(ALL_FRAME_TYPES)
