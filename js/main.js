@@ -101,7 +101,7 @@ function initLegend(svg, scaleFactory) {
     var legend = new Legend(svg, scaleFactory);
     legend.drawUserSummaryLegend();
     legend.drawDeviceLegend(window_size);
-    return legend
+    return legendl;
 }
 
 function drawUserSummary(mac, data) {
@@ -110,14 +110,14 @@ function drawUserSummary(mac, data) {
 }
 
 function drawHourSummary(mac, data) {
-    var xScale = scaleFactory.hourTime(data.HourStart)
+    var xScale = scaleFactory.hourTime(data.HourStart);
     var nodes = svg.selectAll(".hour-data-point")
         .data(data.HourData)
         .enter()
         .append("g")
         .attr("class", "hour-data-point summary-node")
         .attr("mac", function(d) {
-            return d.Mac     
+            return d.Mac;
         })
         .append("circle")
         .attr("class", function(d) {
@@ -134,14 +134,14 @@ function drawHourSummary(mac, data) {
 }
 
 function drawDailySummary(mac, data) {
-    var xScale = scaleFactory.dailyTime(data.DailyStart)
+    var xScale = scaleFactory.dailyTime(data.DailyStart);
     var nodes = svg.selectAll(".daily-data-point")
         .data(data.DailyData)
         .enter()
         .append("g")
         .attr("class", "daily-data-point summary-node")
         .attr("mac", function(d) {
-            return d.Mac     
+            return d.Mac;
         })
         .append("circle")
         .attr('class', function(d) {
@@ -159,24 +159,24 @@ function drawDailySummary(mac, data) {
 
 function toggleUserSummary(d) {
     var cache = userDataCache.get(d.Mac);
-    if (cache == null) {
+    if (cache === null) {
         // download and update cache
         $.getJSON(summary_endpoint, {mac:d.Mac}, function(data) {
             //console.log(data);
             userDataCache.put(d.Mac, data, 360);
-            drawUserSummary(d.Mac, data)
+            drawUserSummary(d.Mac, data);
         });
     }
     else {
         // use cached data
-        drawUserSummary(d.Mac, cache)
+        drawUserSummary(d.Mac, cache);
     }
 }
 
 function update() {
     $.getJSON(query_endpoint, {"window":window_size}, function(data) {
         if (h >= 500) {
-            legend.drawTime(h, data.Start, window_size);    
+            legend.drawTime(h, data.Start, window_size);
         }
         if (w >= 500) {
             legend.drawSignalStrength(w);
@@ -192,7 +192,7 @@ function update() {
 }
 
 function merge(devices, start, data) {
-    var dataset = []
+    var dataset = [];
     $.each(data, function(i, d) {
         devices[d.Mac] = d;
     });
@@ -214,18 +214,18 @@ function merge(devices, start, data) {
 function visualize(data) {
     var nodes = svg.selectAll(".node")
         .data(data, function(d) {
-            return d.Mac;        
+            return d.Mac;
         });
-    
+
     var group = nodes.enter()
         .append("g")
         .attr("class", "node")
         .attr("mac", function(d) {
             return d.Mac;
         });
-        
+
     group.append("circle")
-        .attr('opacity', function(d) { 
+        .attr('opacity', function(d) {
             return scales.age(d.LastArrival);
         })
         .attr("class", function(d) {
@@ -250,7 +250,7 @@ function visualize(data) {
         });
 
     nodes.select("circle").transition().duration(interval)
-        .attr('opacity', function(d) { 
+        .attr('opacity', function(d) {
             return scales.age(d.LastArrival);
         })
         .attr('r', function(d) {
@@ -278,6 +278,6 @@ function visualize(data) {
         .attr('y', function(d) {
             return scales.scaleY(d.LastArrival) + 65;
         });
-    
+
     nodes.exit().remove();
 }
