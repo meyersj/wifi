@@ -237,17 +237,17 @@ function visualize(data) {
         .on("mouseover", mouseoverNode)
         .on("mouseout", mouseoutNode);
 
-    group.append("text")
-        .attr("class", "mac-label")
-        .text(function(d) {
-            return d.Mac;
-        });
+    //group.append("text")
+    //    .attr("class", "mac-label")
+    //    .text(function(d) {
+    //        return d.Mac;
+    //    });
 
-    group.append("text")
-        .attr("class", "manuf-label")
-        .text(function(d) {
-            return d.Manuf;
-        });
+    //group.append("text")
+    //    .attr("class", "manuf-label")
+    //    .text(function(d) {
+    //        return d.Manuf;
+    //    });
 
     nodes.select("circle").transition().duration(interval)
         .attr('opacity', function(d) {
