@@ -5,10 +5,10 @@ import os
 import logging
 import time
 import sys
-from multiprocessing import Process
+from threading import Thread
 
 from .tshark import TSharkBuilder
-from .listener import Listener#, SleepListener
+from .listener import Listener
 from .handler import PostHandler as Handler
 from .constants import Frames
 from .network import is_available, channel_hopper
@@ -37,7 +37,7 @@ DATA_FRAME_TYPES = [
 ALL_FRAME_TYPES = DEFAULT_FRAME_TYPES + DATA_FRAME_TYPES
 
 
-# check if provided interface actually exists
+# check if network interface actually exists
 if not is_available(INTERFACE):
     LOGGER.error("interface %s not available, exiting", INTERFACE)
     sys.exit(1)
@@ -54,18 +54,18 @@ def start_listener(listener_cls, handler_cls, frame_types):
         cmd=tshark_cmd,
         handler=handler_cls
     )
-    # start listening for packets in another process
-    process = Process(target=listener.start)
-    process.start()
+    # start listening for packets in another thread
+    thread = Thread(target=listener.start)
+    thread.start()
     args = [listener_cls, handler_cls, frame_types]
-    return (process, start_listener, args)
+    return (thread, start_listener, args)
 
 
 def start_channel_hopping(ifname):
-    """ start listening for packets in another process """
-    process = Process(target=channel_hopper, args=(ifname,))
-    process.start()
-    return (process, start_channel_hopping, (ifname,))
+    """ start listening for packets in another thread """
+    thread = Thread(target=channel_hopper, args=(ifname,))
+    thread.start()
+    return (thread, start_channel_hopping, (ifname,))
 
 
 def basic_runner():
@@ -75,21 +75,19 @@ def basic_runner():
 
 def main_runner():
     """ create listener for both management and data frames """
-    processes = []
+    threads = [
+        # start thread that will hop between the different wifi frequencies
+        start_channel_hopping(INTERFACE),
+        # create listener for probe requests/responses
+        start_listener(Listener, Handler, DEFAULT_FRAME_TYPES),
+        # create listener to data frames
+        start_listener(Listener, Handler, DATA_FRAME_TYPES)
+    ]
 
-    # start process that will hop between the different wifi frequencies
-    processes.append(start_channel_hopping(INTERFACE))
-    # create listener for probe requests/responses
-    processes.append(start_listener(Listener, Handler, DEFAULT_FRAME_TYPES))
-    # create listener to data frames
-    processes.append(start_listener(Listener, Handler, DATA_FRAME_TYPES))
-
-    # poll to see if any of our subprocesses have died and restart if so
+    # poll to see if any of our threads have died and restart if so
     while True:
-        for process, func, args in processes:
-            if not process.is_alive():
+        for thread, func, args in threads:
+            if not thread.is_alive():
                 LOGGER.error("process died, restarting")
-                print "before", processes
-                process, func, args = func(*args) # pylint: disable=bad-option-value
-                print "after", processes
+                thread, func, args = func(*args) # pylint: disable=bad-option-value
         time.sleep(30)
