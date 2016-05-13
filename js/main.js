@@ -101,7 +101,7 @@ function initLegend(svg, scaleFactory) {
     var legend = new Legend(svg, scaleFactory);
     legend.drawUserSummaryLegend();
     legend.drawDeviceLegend(window_size);
-    return legendl;
+    return legend;
 }
 
 function drawUserSummary(mac, data) {
@@ -153,7 +153,7 @@ function drawDailySummary(mac, data) {
             return xScale(d.Hour);
         })
         .attr('cy', function(d) {
-            return h - 30;
+            return h - 40;
         });
 }
 

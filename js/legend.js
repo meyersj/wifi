@@ -16,8 +16,8 @@ Legend.prototype = {
         // UL = upper left, UR = upper right, BL = bottom left ...
         var UL = [this.LEFT_PADDING, this.scales.h - 60];
         var UR = [this.scales.w - 50, this.scales.h - 60];
-        var BL = [this.LEFT_PADDING, this.scales.h - 30];
-        var BR = [this.scales.w - 50, this.scales.h - 30];
+        var BL = [this.LEFT_PADDING, this.scales.h - 40];
+        var BR = [this.scales.w - 50, this.scales.h - 40];
         var VOFF = 20;
         var labels = [
             [UL[0], UL[1] - VOFF, "-60 min"],
@@ -39,7 +39,7 @@ Legend.prototype = {
 
         this.clearUserSummaryLegend();
 
-        this.svg.selectAll(".user-sumamry-legend").data(labels).enter()
+        this.svg.selectAll(".user-summary-legend").data(labels).enter()
             .append("text")
             .attr("class", "user-summary-legend")
             .attr("font-family", this.font_family)
