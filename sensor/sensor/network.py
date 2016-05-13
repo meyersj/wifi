@@ -55,4 +55,4 @@ def channel_hopper(ifname):
                 if failures >= MAX_CHANNEL_FAILURES:
                     LOGGER.error("max failures reached, exiting")
                     sys.exit(1)
-                time.sleep(10)
+                time.sleep(60)
