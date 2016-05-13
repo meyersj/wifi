@@ -18,7 +18,7 @@ Legend.prototype = {
         var UR = [this.scales.w - 50, this.scales.h - 60];
         var BL = [this.LEFT_PADDING, this.scales.h - 30];
         var BR = [this.scales.w - 50, this.scales.h - 30];
-        var VOFF = 20; 
+        var VOFF = 20;
         var labels = [
             [UL[0], UL[1] - VOFF, "-60 min"],
             [(UR[0] - UL[0]) / 2 + 50, UL[1] - VOFF, "-30 min"],
@@ -36,9 +36,9 @@ Legend.prototype = {
             [[UL[0], UL[1] - 10], [BL[0], BL[1] + 10]],
             [[UR[0], UR[1] - 10], [BR[0], BR[1] + 10]],
         ];
-        
+
         this.clearUserSummaryLegend();
-        
+
         this.svg.selectAll(".user-sumamry-legend").data(labels).enter()
             .append("text")
             .attr("class", "user-summary-legend")
@@ -66,7 +66,7 @@ Legend.prototype = {
             })
             .attr("stroke", "grey")
             .attr("stroke-width", "1");
-    
+
     },
     drawSignalStrength: function(w) {
         var signals = _.range(-10, -110, -10);
@@ -83,7 +83,7 @@ Legend.prototype = {
                 return scale(d);
             })
             .attr("y", this.TOP_PADDING - 20);
-        
+
         this.svg.selectAll(".signal-label").remove();
         this.svg.append('text')
             .attr("class", "signal-label")
@@ -92,7 +92,7 @@ Legend.prototype = {
             .attr("y", this.TOP_PADDING - 35);
     },
     drawTime: function(start) {
-        var recent = start + (this.scales.window_size * 60) 
+        var recent = start + (this.scales.window_size * 60);
         var times = _.range(start, recent + 60, 60);
         var scale = this.scales.windowTime(start);
         this.svg.selectAll(".time-legend").remove();
@@ -109,8 +109,8 @@ Legend.prototype = {
     },
     drawDeviceLegend: function(window_size) {
         var data = [
-            {"name":"new", "class":"wifi-unknown", "size":15},
-            {"name":"old", "class":"wifi-unknown", "size":5},
+            //{"name":"new", "class":"wifi-unknown", "size":15},
+            //{"name":"old", "class":"wifi-unknown", "size":5},
             {"name":"Device", "class":"wifi-device"},
             {"name":"Mixed","class":"wifi-hybrid"},
             {"name":"AP", "class":"wifi-access-point"},
@@ -131,7 +131,7 @@ Legend.prototype = {
                 return 10;
             })
             .attr('class', function(d) {
-                return "device-legend wifi-node " + d.class
+                return "device-legend wifi-node " + d.class;
             })
             .attr('cx', function(d, i) {
                 return spacing(i, d.name);
@@ -139,7 +139,7 @@ Legend.prototype = {
             .attr('cy', function(d) {
                 return 22;
             });
-        
+
         svg.selectAll(".device-labels")
             .data(data)
             .enter()
@@ -152,7 +152,7 @@ Legend.prototype = {
                 return 49;
             })
             .text(function(d) {
-                return d.name;   
+                return d.name;
             });
     }
 };
