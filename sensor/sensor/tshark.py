@@ -28,7 +28,7 @@ class TSharkBuilder(object):
 
     def build(self):
         """ construct tshark command """
-        tshark = "tshark -i {0} -l -Y '{1}' -T fields {2}"
+        tshark = "tshark -i {0} -f 'not multicast' -l -Y '{1}' -T fields {2}"
         return tshark.format(self.interface, self._subtypes(), self._fields())
 
     def set_fields(self, fields):
