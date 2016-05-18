@@ -1,5 +1,7 @@
 ## WiFi Device Activity
 
+Live Demo of WiFi activity at my apartment: http://meyersj.github.io/wifi
+
 ### Summary
 
 This project contains code used to monitor Wifi activity with a Raspberry Pi.
